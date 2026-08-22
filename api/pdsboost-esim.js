@@ -9,7 +9,6 @@ export default async function handler(req, res) {
     if (!key) {
       return res.status(500).json({ error: "PDSBOOST_API_KEY is missing" });
     }
-
     const { action, country, package: pkg } = req.body || {};
 
     if (!action) {
