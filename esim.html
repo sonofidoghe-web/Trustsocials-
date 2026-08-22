@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eSIM - Trust Social</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f8f9fa;
+      color: #111;
+      min-height: 100vh;
+      padding-bottom: 50px;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #fff;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      transition: all 0.3s ease;
+    }
+
+    .header.scrolled {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .menu-toggle, .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: #333;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-no {
+      background: #f0f0f0;
+      color: #555;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      background: #3d6b1e;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    /* SIDEBAR */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 300px;
+      height: 100%;
+      background: white;
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+      padding: 20px 0 30px;
+    }
+    .sidebar.active { transform: translateX(0); }
+
+    .sidebar-logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .sidebar-logo img {
+      height: 40px;
+      max-width: 180px;
+      object-fit: contain;
+    }
+
+    .menu-section { padding: 20px 12px 8px; }
+    .menu-section-title {
+      font-size: 13px;
+      color: #888;
+      font-weight: 500;
+      padding: 0 12px 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      color: #333;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .menu-item:hover { background: #f5f5f5; }
+    .menu-item.active { background: #f0f7eb; color: #3d6b1e; }
+    .signout-item { color: #d32f2f !important; }
+    .menu-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* CONTENT */
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    .subtitle { color: #666; font-size: 15px; margin-bottom: 24px; }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      margin-top: 8px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .form-group select, .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      background: white;
+    }
+    .form-group select:focus, .form-group input:focus {
+      border-color: #3d6b1e;
+    }
+
+    .price-box {
+      background: #f0f7eb;
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      font-size: 15px;
+      display: none;
+    }
+    .price-box strong { color: #3d6b1e; }
+
+    .buy-btn {
+      width: 100%;
+      padding: 16px;
+      background: #3d6b1e;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .buy-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .error-box {
+      background: #fff1f1;
+      border: 1px solid #ffd0d0;
+      color: #c62828;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success-box {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      color: #2e7d32;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .result-box {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 20px;
+      display: none;
+    }
+    .result-box h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #3d6b1e;
+    }
+    .result-box p {
+      font-size: 14px;
+      margin-bottom: 8px;
+      word-break: break-all;
+    }
+    .result-box img {
+      max-width: 200px;
+      margin: 15px auto;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="logo.png" alt="Trust Social">
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-section-title">Main</div>
+      <a href="dashboard.html" class="menu-item">Dashboard</a>
+      <a href="wallet.html" class="menu-item">Wallet</a>
+      <a href="orders.html" class="menu-item">Orders</a>
+      <a href="transactions.html" class="menu-item">Transactions</a>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-section-title">Store</div>
+      <a href="logs.html" class="menu-item">Logs Store</a>
+      <a href="tools.html" class="menu-item">Tools Store</a>
+      <a href="sms.html" class="menu-item">SMS Numbers</a>
+      <a href="sme.html" class="menu-item">SME Boosting</a>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-section-title">Services</div>
+
+      <a href="airtime.html" class="menu-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/>
+          <path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/>
+          <path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/>
+          <circle cx="12" cy="12" r="4"/>
+        </svg>
+        Airtime & Bills
+      </a>
+
+      <a href="cable.html" class="menu-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+          <polyline points="17 2 12 7 7 2"/>
+        </svg>
+        Cable TV & Betting
+      </a>
+
+      <a href="gaming.html" class="menu-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/>
+          <line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/>
+          <rect x="2" y="6" width="20" height="12" rx="2"/>
+        </svg>
+        Gaming
+      </a>
+
+      <a href="cards.html" class="menu-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+          <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        Cards
+      </a>
+
+      <a href="proxies.html" class="menu-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        Proxies
+      </a>
+
+      <a href="esim.html" class="menu-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+          <line x1="12" y1="18" x2="12.01" y2="18"/>
+        </svg>
+        eSIM
+      </a>
+
+      <a href="api-docs.html" class="menu-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+        </svg>
+        API & Docs
+      </a>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-section-title">Account</div>
+      <a href="support.html" class="menu-item">Support</a>
+      <a href="notification.html" class="menu-item">Notification</a>
+      <a href="profile.html" class="menu-item">Profile</a>
+    </div>
+
+    <div class="menu-section" style="border-top:1px solid #eee; margin-top:10px; padding-top:10px;">
+      <a href="login.html" class="menu-item signout-item" id="signOutBtn">Sign out</a>
+    </div>
+  </div>
+
+  <header class="header" id="header">
+    <button class="menu-toggle" id="menuToggle">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    </button>
+
+    <div class="header-right">
+      <span class="badge-no">No</span>
+      <button class="icon-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+      </button>
+      <button class="icon-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </button>
+      <div class="avatar" id="userAvatar">--</div>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>eSIM</h1>
+    <p class="subtitle">Buy international eSIM instantly</p>
+
+    <div id="errorBox" class="error-box"></div>
+    <div id="successBox" class="success-box"></div>
+
+    <div class="section-title">1. Select Country</div>
+    <div class="form-group">
+      <select id="countrySelect">
+        <option value="">Loading countries...</option>
+      </select>
+    </div>
+
+    <div class="section-title">2. Select Plan</div>
+    <div class="form-group">
+      <select id="planSelect" disabled>
+        <option value="">Select country first</option>
+      </select>
+    </div>
+
+    <div class="price-box" id="priceBox">
+      You will pay: <strong id="sellingPrice">₦0.00</strong>
+    </div>
+
+    <button class="buy-btn" id="buyBtn" disabled>Buy eSIM</button>
+
+    <!-- Result after purchase -->
+    <div class="result-box" id="resultBox">
+      <h3>eSIM Details</h3>
+      <div id="resultContent"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      updateDoc, 
+      doc, 
+      serverTimestamp,
+      runTransaction
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDutrOemL5dqk4hIdQ1K2QmhiBhtegv8k",
+      authDomain: "trustsocials-8fc8b.firebaseapp.com",
+      projectId: "trustsocials-8fc8b",
+      storageBucket: "trustsocials-8fc8b.firebasestorage.app",
+      messagingSenderId: "675550258010",
+      appId: "1:675550258010:web:ec6444eb22b04a92fd0963",
+      measurementId: "G-KDVYRV55JD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const MARKUP = 0.20; // 20%
+
+    let currentUser = null;
+    let selectedPlan = null;
+    let selectedPlanPrice = 0;
+
+    // ========== COMMON ==========
+    const errorBox = document.getElementById("errorBox");
+    const successBox = document.getElementById("successBox");
+
+    function showError(msg) {
+      errorBox.style.display = "block";
+      errorBox.textContent = msg;
+      successBox.style.display = "none";
+    }
+    function showSuccess(msg) {
+      successBox.style.display = "block";
+      successBox.innerHTML = msg;
+      errorBox.style.display = "none";
+    }
+    function clearMessages() {
+      errorBox.style.display = "none";
+      successBox.style.display = "none";
+    }
+
+    function formatMoney(value) {
+      return Number(value || 0).toLocaleString("en-NG", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    // ========== SIDEBAR ==========
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+
+    document.getElementById("menuToggle").addEventListener("click", () => {
+      sidebar.classList.add("active");
+      overlay.classList.add("active");
+      document.body.style.overflow = "hidden";
+    });
+
+    overlay.addEventListener("click", () => {
+      sidebar.classList.remove("active");
+      overlay.classList.remove("active");
+      document.body.style.overflow = "";
+    });
+
+    window.addEventListener("scroll", () => {
+      document.getElementById("header").classList.toggle("scrolled", window.scrollY > 10);
+    });
+
+    document.getElementById("signOutBtn").addEventListener("click", async (e) => {
+      e.preventDefault();
+      await signOut(auth);
+      window.location.href = "login.html";
+    });
+
+    // ========== AUTH ==========
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+
+      const displayName = user.displayName || (user.email ? user.email.split("@")[0] : "User");
+      const names = displayName.trim().split(" ");
+      let initials = names[0].charAt(0).toUpperCase();
+      if (names.length > 1) initials += names[names.length - 1].charAt(0).toUpperCase();
+      document.getElementById("userAvatar").textContent = initials;
+    });
+
+    // ========== LOAD COUNTRIES ==========
+    async function loadCountries() {
+      const select = document.getElementById("countrySelect");
+      try {
+        const res = await fetch("/api/pdsboost-esim-countries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+
+        select.innerHTML = `<option value="">Select a country</option>`;
+
+        // Adjust according to actual response structure
+        const countries = data.countries || data.data || data || [];
+
+        if (Array.isArray(countries)) {
+          countries.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c.code || c.id || c.country || c;
+            opt.textContent = c.name || c.country || c;
+            select.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        select.innerHTML = `<option value="">Failed to load countries</option>`;
+        showError("Could not load countries");
+      }
+    }
+
+    loadCountries();
+
+    // ========== LOAD PLANS ==========
+    document.getElementById("countrySelect").addEventListener("change", async () => {
+      const country = document.getElementById("countrySelect").value;
+      const planSelect = document.getElementById("planSelect");
+      const priceBox = document.getElementById("priceBox");
+      const buyBtn = document.getElementById("buyBtn");
+
+      planSelect.innerHTML = `<option value="">Loading plans...</option>`;
+      planSelect.disabled = true;
+      priceBox.style.display = "none";
+      buyBtn.disabled = true;
+      selectedPlan = null;
+      selectedPlanPrice = 0;
+
+      if (!country) {
+        planSelect.innerHTML = `<option value="">Select country first</option>`;
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/pdsboost-esim-plans", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ country })
+        });
+        const data = await res.json();
+
+        planSelect.innerHTML = `<option value="">Select a plan</option>`;
+
+        const plans = data.plans || data.data || data || [];
+
+        if (!Array.isArray(plans) || plans.length === 0) {
+          planSelect.innerHTML = `<option value="">No plans available</option>`;
+          return;
+        }
+
+        plans.forEach(plan => {
+          const opt = document.createElement("option");
+          opt.value = plan.id || plan.package || plan.code;
+          opt.dataset.price = plan.price || plan.amount || 0;
+          opt.textContent = `${plan.name || plan.title || "Plan"} - ₦${Number(plan.price || plan.amount || 0).toLocaleString()}`;
+          planSelect.appendChild(opt);
+        });
+
+        planSelect.disabled = false;
+      } catch (err) {
+        console.error(err);
+        planSelect.innerHTML = `<option value="">Failed to load plans</option>`;
+        showError("Could not load plans");
+      }
+    });
+
+    // ========== PLAN SELECTED ==========
+    document.getElementById("planSelect").addEventListener("change", () => {
+      const select = document.getElementById("planSelect");
+      const price = Number(select.selectedOptions[0]?.dataset.price || 0);
+      selectedPlan = select.value;
+      selectedPlanPrice = price;
+
+      const selling = price * (1 + MARKUP);
+      const box = document.getElementById("priceBox");
+
+      if (price > 0) {
+        box.style.display = "block";
+        document.getElementById("sellingPrice").textContent = "₦" + formatMoney(selling);
+        document.getElementById("buyBtn").disabled = false;
+      } else {
+        box.style.display = "none";
+        document.getElementById("buyBtn").disabled = true;
+      }
+    });
+
+    // ========== BUY eSIM ==========
+    document.getElementById("buyBtn").addEventListener("click", async () => {
+      clearMessages();
+      document.getElementById("resultBox").style.display = "none";
+
+      if (!selectedPlan || selectedPlanPrice <= 0) {
+        showError("Please select a plan");
+        return;
+      }
+
+      const sellingPrice = selectedPlanPrice * (1 + MARKUP);
+      const btn = document.getElementById("buyBtn");
+      btn.disabled = true;
+      btn.textContent = "Processing...";
+
+      let orderDocId = null;
+      let deducted = false;
+
+      try {
+        // 1. Deduct balance
+        const userRef = doc(db, "users", currentUser.uid);
+        await runTransaction(db, async (transaction) => {
+          const userSnap = await transaction.get(userRef);
+          if (!userSnap.exists()) throw new Error("User not found");
+          const currentBalance = Number(userSnap.data().balance || 0);
+          if (currentBalance < sellingPrice) {
+            throw new Error(`Insufficient balance. You need ₦${formatMoney(sellingPrice)}`);
+          }
+          transaction.update(userRef, { balance: currentBalance - sellingPrice });
+        });
+        deducted = true;
+
+        // 2. Create order
+        const orderRef = await addDoc(collection(db, "orders"), {
+          userId: currentUser.uid,
+          userEmail: currentUser.email || "",
+          type: "esim",
+          package: selectedPlan,
+          amount: selectedPlanPrice,
+          sellingPrice: Number(sellingPrice.toFixed(2)),
+          markup: 20,
+          status: "processing",
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        orderDocId = orderRef.id;
+
+        // 3. Call Pdsboost
+        const res = await fetch("/api/pdsboost-esim-buy", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ package: selectedPlan })
+        });
+
+        const data = await res.json();
+
+        if (data.order || data.success || data.status === "success") {
+          await updateDoc(doc(db, "orders", orderDocId), {
+            providerOrderId: data.order || data.order_id || "",
+            status: "completed",
+            qr: data.qr || "",
+            lpa: data.lpa || "",
+            iccid: data.iccid || "",
+            updatedAt: serverTimestamp()
+          });
+
+          showSuccess("eSIM purchased successfully!");
+
+          // Show result
+          const resultBox = document.getElementById("resultBox");
+          const content = document.getElementById("resultContent");
+          let html = "";
+
+          if (data.qr) {
+            html += `<p><strong>QR Code:</strong></p><img src="${data.qr}" alt="eSIM QR">`;
+          }
+          if (data.lpa) {
+            html += `<p><strong>LPA:</strong> ${data.lpa}</p>`;
+          }
+          if (data.iccid) {
+            html += `<p><strong>ICCID:</strong> ${data.iccid}</p>`;
+          }
+          if (data.order) {
+            html += `<p><strong>Order ID:</strong> ${data.order}</p>`;
+          }
+
+          content.innerHTML = html || "<p>Order completed. Check your email or order history.</p>";
+          resultBox.style.display = "block";
+        } else {
+          throw new Error(data.message || data.error || "Purchase failed");
+        }
+      } catch (err) {
+        // Refund
+        if (deducted) {
+          try {
+            const userRef = doc(db, "users", currentUser.uid);
+            await runTransaction(db, async (transaction) => {
+              const userSnap = await transaction.get(userRef);
+              const currentBalance = Number(userSnap.data().balance || 0);
+              transaction.update(userRef, { balance: currentBalance + sellingPrice });
+            });
+          } catch (e) {
+            console.error("Refund failed", e);
+          }
+        }
+
+        if (orderDocId) {
+          await updateDoc(doc(db, "orders", orderDocId), {
+            status: "failed",
+            error: err.message,
+            updatedAt: serverTimestamp()
+          });
+        }
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Buy eSIM";
+      }
+    });
+  </script>
+</body>
+</html>
