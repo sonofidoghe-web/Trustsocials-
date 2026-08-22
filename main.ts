@@ -1,143 +1,379 @@
-const PDSBOOST_URL = "https://pdsboost.com/api/v2/store-v2";
+// main.ts
+//
+// Trust Social - Deno eSIM API Proxy
+//
+// Routes:
+// POST /esim/countries
+// POST /esim/plans
+// POST /esim/buy
+//
+// The Pdsboost API key stays on the Deno server.
+// NEVER put the private API key inside esim.html.
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Content-Type": "application/json",
-};
+const PDSBOOST_URL =
+  Deno.env.get("PDSBOOST_API_URL") ||
+  "https://pdsboost.com/api/store-v2";
 
-function response(data, status = 200) {
+const PDSBOOST_KEY =
+  Deno.env.get("PDSBOOST_API_KEY") ||
+  Deno.env.get("PDSBOOST_PRIVATE_API_KEY") ||
+  "";
+
+const PORT = Number(Deno.env.get("PORT") || 8000);
+
+// --------------------------------------------------
+// CORS
+// --------------------------------------------------
+
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Content-Type": "application/json",
+  };
+}
+
+// --------------------------------------------------
+// JSON RESPONSE
+// --------------------------------------------------
+
+function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: corsHeaders,
+    headers: corsHeaders(),
   });
 }
 
-async function callPdsBoost(body) {
-  const apiKey = Deno.env.get("PDSBOOST_API_KEY");
+// --------------------------------------------------
+// ERROR RESPONSE
+// --------------------------------------------------
 
-  if (!apiKey) {
-    throw new Error("PDSBOOST_API_KEY is not configured");
+function errorResponse(message: string, status = 400, extra: unknown = null) {
+  return json(
+    {
+      success: false,
+      error: message,
+      ...(extra ? { details: extra } : {}),
+    },
+    status,
+  );
+}
+
+// --------------------------------------------------
+// PROVIDER REQUEST
+// --------------------------------------------------
+
+async function pdsboostRequest(action: string, extra: Record<string, unknown> = {}) {
+  if (!PDSBOOST_KEY) {
+    throw new Error(
+      "PDSBOOST_API_KEY is not configured in Deno environment variables.",
+    );
   }
 
-  const res = await fetch(PDSBOOST_URL, {
+  const body = {
+    key: PDSBOOST_KEY,
+    action,
+    ...extra,
+  };
+
+  const response = await fetch(PDSBOOST_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
-    body: JSON.stringify({
-      key: apiKey,
-      ...body,
-    }),
+    body: JSON.stringify(body),
   });
 
-  const text = await res.text();
+  const text = await response.text();
 
-  let data;
+  let data: any;
 
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error("Invalid response from PdsBoost");
+    data = {
+      success: false,
+      error: text || "Provider returned an invalid response.",
+    };
   }
 
-  if (!res.ok) {
+  if (!response.ok) {
     throw new Error(
-      data?.message ||
       data?.error ||
-      `PdsBoost returned HTTP ${res.status}`
+        data?.message ||
+        `Provider returned HTTP ${response.status}`,
     );
   }
 
   return data;
 }
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
+// --------------------------------------------------
+// NORMALIZE PROVIDER RESPONSE
+// --------------------------------------------------
+
+function extractArray(data: any, keys: string[]) {
+  for (const key of keys) {
+    if (Array.isArray(data?.[key])) {
+      return data[key];
+    }
   }
 
-  if (req.method !== "POST") {
-    return response({
-      success: false,
-      error: "Only POST requests are allowed",
-    }, 405);
+  if (Array.isArray(data)) {
+    return data;
   }
 
-  const url = new URL(req.url);
-  const path = url.pathname;
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  return [];
+}
+
+// --------------------------------------------------
+// COUNTRIES
+// --------------------------------------------------
+
+async function getCountries() {
+  const data = await pdsboostRequest("esim_countries");
+
+  const countries = extractArray(data, [
+    "countries",
+    "data",
+    "results",
+    "items",
+  ]);
+
+  return json({
+    success: true,
+    countries,
+    data: countries,
+    provider: data,
+  });
+}
+
+// --------------------------------------------------
+// PLANS
+// --------------------------------------------------
+
+async function getPlans(request: Request) {
+  let body: any = {};
 
   try {
-    const body = await req.json().catch(() => ({}));
-
-    // ==============================
-    // GET eSIM COUNTRIES
-    // ==============================
-    if (path === "/pdsboost-esim-countries") {
-      const data = await callPdsBoost({
-        action: "esim_countries",
-      });
-
-      return response(data);
-    }
-
-    // ==============================
-    // GET eSIM PLANS
-    // ==============================
-    if (path === "/pdsboost-esim-plans") {
-      const country = body.country;
-
-      if (!country) {
-        return response({
-          success: false,
-          error: "Country is required",
-        }, 400);
-      }
-
-      const data = await callPdsBoost({
-        action: "esim_plans",
-        country,
-      });
-
-      return response(data);
-    }
-
-    // ==============================
-    // BUY eSIM
-    // ==============================
-    if (path === "/pdsboost-esim-buy") {
-      const packageId = body.package;
-
-      if (!packageId) {
-        return response({
-          success: false,
-          error: "Package is required",
-        }, 400);
-      }
-
-      const data = await callPdsBoost({
-        action: "esim_buy",
-        package: packageId,
-      });
-
-      return response(data);
-    }
-
-    return response({
-      success: false,
-      error: "Endpoint not found",
-    }, 404);
-
-  } catch (error) {
-    console.error("Deno API error:", error);
-
-    return response({
-      success: false,
-      error: error.message || "Server error",
-    }, 500);
+    body = await request.json();
+  } catch {
+    body = {};
   }
-});
+
+  const country =
+    body?.country ||
+    body?.countryCode ||
+    body?.code ||
+    "";
+
+  if (!country) {
+    return errorResponse("Country is required.");
+  }
+
+  const data = await pdsboostRequest("esim_plans", {
+    country,
+  });
+
+  const plans = extractArray(data, [
+    "plans",
+    "data",
+    "results",
+    "items",
+  ]);
+
+  return json({
+    success: true,
+    country,
+    plans,
+    data: plans,
+    provider: data,
+  });
+}
+
+// --------------------------------------------------
+// BUY eSIM
+// --------------------------------------------------
+
+async function buyEsim(request: Request) {
+  let body: any = {};
+
+  try {
+    body = await request.json();
+  } catch {
+    return errorResponse("Invalid JSON request.");
+  }
+
+  const packageId =
+    body?.package ||
+    body?.packageId ||
+    body?.plan ||
+    body?.planId ||
+    body?.code ||
+    "";
+
+  if (!packageId) {
+    return errorResponse("eSIM package is required.");
+  }
+
+  const data = await pdsboostRequest("esim_buy", {
+    package: packageId,
+  });
+
+  /*
+    Pdsboost response is passed back to esim.html.
+
+    This keeps the frontend flexible because the provider
+    may return different fields depending on the package.
+  */
+
+  return json({
+    success: true,
+
+    order:
+      data?.order ??
+      data?.order_id ??
+      data?.orderId ??
+      "",
+
+    order_id:
+      data?.order_id ??
+      data?.orderId ??
+      data?.order ??
+      "",
+
+    qr:
+      data?.qr ??
+      data?.qr_code ??
+      data?.qrcode ??
+      data?.qrCode ??
+      "",
+
+    lpa:
+      data?.lpa ??
+      data?.LPA ??
+      data?.activation_code ??
+      "",
+
+    iccid:
+      data?.iccid ??
+      data?.ICCID ??
+      "",
+
+    package: packageId,
+
+    message:
+      data?.message ||
+      "eSIM purchase completed.",
+
+    provider: data,
+  });
+}
+
+// --------------------------------------------------
+// HEALTH CHECK
+// --------------------------------------------------
+
+function healthCheck() {
+  return json({
+    success: true,
+    service: "Trust Social eSIM API",
+    status: "online",
+    routes: [
+      "POST /esim/countries",
+      "POST /esim/plans",
+      "POST /esim/buy",
+    ],
+  });
+}
+
+// --------------------------------------------------
+// SERVER
+// --------------------------------------------------
+
+Deno.serve(
+  {
+    port: PORT,
+  },
+  async (request) => {
+    const url = new URL(request.url);
+
+    // OPTIONS / CORS
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders(),
+      });
+    }
+
+    // Health
+    if (request.method === "GET" && url.pathname === "/") {
+      return healthCheck();
+    }
+
+    // Countries
+    if (
+      request.method === "POST" &&
+      url.pathname === "/esim/countries"
+    ) {
+      try {
+        return await getCountries();
+      } catch (error) {
+        console.error("Countries error:", error);
+
+        return errorResponse(
+          error instanceof Error
+            ? error.message
+            : "Failed to load eSIM countries.",
+          502,
+        );
+      }
+    }
+
+    // Plans
+    if (
+      request.method === "POST" &&
+      url.pathname === "/esim/plans"
+    ) {
+      try {
+        return await getPlans(request);
+      } catch (error) {
+        console.error("Plans error:", error);
+
+        return errorResponse(
+          error instanceof Error
+            ? error.message
+            : "Failed to load eSIM plans.",
+          502,
+        );
+      }
+    }
+
+    // Buy
+    if (
+      request.method === "POST" &&
+      url.pathname === "/esim/buy"
+    ) {
+      try {
+        return await buyEsim(request);
+      } catch (error) {
+        console.error("Buy eSIM error:", error);
+
+        return errorResponse(
+          error instanceof Error
+            ? error.message
+            : "eSIM purchase failed.",
+          502,
+        );
+      }
+    }
+
+    return errorResponse("Route not found.", 404);
+  },
+);
