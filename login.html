@@ -45,6 +45,7 @@
       margin-bottom: 32px;
     }
 
+    /* Google button */
     .google-btn {
       width: 100%;
       display: flex;
@@ -66,6 +67,11 @@
       background: #f8f8f8;
     }
 
+    .google-btn img {
+      width: 20px;
+      height: 20px;
+    }
+
     .last-used {
       position: absolute;
       right: 12px;
@@ -76,6 +82,7 @@
       border-radius: 20px;
     }
 
+    /* Divider */
     .divider {
       display: flex;
       align-items: center;
@@ -96,6 +103,7 @@
       padding: 0 16px;
     }
 
+    /* Message box (same size as inputs) */
     .message {
       width: 100%;
       padding: 14px 16px;
@@ -119,6 +127,7 @@
       border: 1px solid #f5c6cb;
     }
 
+    /* Form labels & inputs */
     label {
       display: block;
       font-size: 15px;
@@ -188,6 +197,7 @@
       height: 20px;
     }
 
+    /* Sign in button */
     .signin-btn {
       width: 100%;
       padding: 16px;
@@ -211,6 +221,7 @@
       cursor: not-allowed;
     }
 
+    /* Bottom link */
     .bottom-text {
       text-align: center;
       margin-top: 28px;
@@ -231,11 +242,13 @@
 </head>
 <body>
   <div class="container">
+    <!-- Logo -->
     <img src="logo.png.jpg" alt="Trust Social" class="logo">
 
     <h1>Welcome back</h1>
     <p class="subtitle">Sign in to your TrustSocials account</p>
 
+    <!-- Google button -->
     <button class="google-btn" id="googleBtn">
       <svg width="20" height="20" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -251,13 +264,16 @@
       <span>or continue with email</span>
     </div>
 
+    <!-- Message box (appears before Email) -->
     <div id="message" class="message"></div>
 
+    <!-- Email -->
     <div class="input-group">
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="you@example.com" required>
     </div>
 
+    <!-- Password -->
     <div class="input-group">
       <div class="password-header">
         <label for="password">Password</label>
@@ -266,6 +282,7 @@
       <div class="password-wrapper">
         <input type="password" id="password" placeholder="••••••••" required>
         <button type="button" class="toggle-password" id="togglePassword">
+          <!-- Eye icon -->
           <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
@@ -274,149 +291,146 @@
       </div>
     </div>
 
+    <!-- Sign in button -->
     <button class="signin-btn" id="signinBtn">Sign in</button>
 
     <p class="bottom-text">
       No account? <a href="signup.html">Create one free</a>
     </p>
   </div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
-  import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    GoogleAuthProvider, 
-    signInWithRedirect,
-    getRedirectResult,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDDutrOemL5dqk4hIdQ1K2QmhiBhtegv8k",
-    authDomain: "trustsocials-8fc8b.firebaseapp.com",
-    projectId: "trustsocials-8fc8b",
-    storageBucket: "trustsocials-8fc8b.firebasestorage.app",
-    messagingSenderId: "675550258010",
-    appId: "1:675550258010:web:ec6444eb22b04a92fd0963",
-    measurementId: "G-KDVYRV55JD"
-  };
+  <script type="module">
+    // Your Firebase config
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      GoogleAuthProvider, 
+      signInWithPopup 
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth(app);
-  const googleProvider = new GoogleAuthProvider();
+    const firebaseConfig = {
+      apiKey: "AIzaSyDDutrOemL5dqk4hIdQ1K2QmhiBhtegv8k",
+      authDomain: "trustsocials-8fc8b.firebaseapp.com",
+      projectId: "trustsocials-8fc8b",
+      storageBucket: "trustsocials-8fc8b.firebasestorage.app",
+      messagingSenderId: "675550258010",
+      appId: "1:675550258010:web:ec6444eb22b04a92fd0963",
+      measurementId: "G-KDVYRV55JD"
+    };
 
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const signinBtn = document.getElementById('signinBtn');
-  const googleBtn = document.getElementById('googleBtn');
-  const messageBox = document.getElementById('message');
-  const togglePassword = document.getElementById('togglePassword');
-  const eyeIcon = document.getElementById('eyeIcon');
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
 
-  function showMessage(text, type) {
-    messageBox.textContent = text;
-    messageBox.className = `message ${type}`;
-  }
+    // Elements
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const signinBtn = document.getElementById('signinBtn');
+    const googleBtn = document.getElementById('googleBtn');
+    const messageBox = document.getElementById('message');
+    const togglePassword = document.getElementById('togglePassword');
+    const eyeIcon = document.getElementById('eyeIcon');
 
-  function hideMessage() {
-    messageBox.className = 'message';
-    messageBox.textContent = '';
-  }
-
-  // Toggle password
-  togglePassword.addEventListener('click', () => {
-    const type = passwordInput.type === 'password' ? 'text' : 'password';
-    passwordInput.type = type;
-    
-    if (type === 'text') {
-      eyeIcon.innerHTML = `
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-        <line x1="1" y1="1" x2="23" y2="23"/>
-      `;
-    } else {
-      eyeIcon.innerHTML = `
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-        <circle cx="12" cy="12" r="3"/>
-      `;
-    }
-  });
-
-  // Email login
-  signinBtn.addEventListener('click', async () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    if (!email || !password) {
-      showMessage('Please enter both email and password', 'error');
-      return;
+    // Show message (green or red)
+    function showMessage(text, type) {
+      messageBox.textContent = text;
+      messageBox.className = `message ${type}`;
     }
 
-    signinBtn.textContent = 'Signing in…';
-    signinBtn.disabled = true;
-    hideMessage();
+    function hideMessage() {
+      messageBox.className = 'message';
+      messageBox.textContent = '';
+    }
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      showMessage('Signed in successfully!', 'success');
-      setTimeout(() => {
-        window.location.replace('dashboard.html');
-      }, 600);
-    } catch (error) {
-      let errorMsg = 'Something went wrong. Please try again.';
-      if (error.code === 'auth/user-not-found') errorMsg = 'No account found with this email.';
-      else if (error.code === 'auth/wrong-password') errorMsg = 'Incorrect password.';
-      else if (error.code === 'auth/invalid-email') errorMsg = 'Invalid email address.';
-      else if (error.code === 'auth/too-many-requests') errorMsg = 'Too many attempts. Please try again later.';
-      else if (error.code === 'auth/invalid-credential') errorMsg = 'Invalid email or password.';
+    // Toggle password visibility
+    togglePassword.addEventListener('click', () => {
+      const type = passwordInput.type === 'password' ? 'text' : 'password';
+      passwordInput.type = type;
       
-      showMessage(errorMsg, 'error');
-    } finally {
-      signinBtn.textContent = 'Sign in';
-      signinBtn.disabled = false;
-    }
-  });
-
-  // ========== GOOGLE REDIRECT - FORCED ==========
-
-  // This runs as soon as the page loads
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      // User is logged in → force go to dashboard
-      showMessage('Signed in successfully!', 'success');
-      setTimeout(() => {
-        window.location.replace('dashboard.html');
-      }, 400);
-    }
-  });
-
-  // Also try to catch the redirect result
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result && result.user) {
-        showMessage('Signed in with Google successfully!', 'success');
-        setTimeout(() => {
-          window.location.replace('dashboard.html');
-        }, 300);
+      // Simple icon change (you can improve the SVG if you want)
+      if (type === 'text') {
+        eyeIcon.innerHTML = `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        `;
+      } else {
+        eyeIcon.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        `;
       }
-    })
-    .catch((error) => {
-      console.error("Redirect error:", error);
     });
 
-  // Button click starts the redirect
-  googleBtn.addEventListener('click', () => {
-    hideMessage();
-    googleBtn.disabled = true;
-    signInWithRedirect(auth, googleProvider)
-      .catch((error) => {
-        console.error(error);
-        showMessage('Google sign-in failed. Please try again.', 'error');
-        googleBtn.disabled = false;
-      });
-  });
-</script>
-  
+    // Email + Password Sign In
+    signinBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        showMessage('Please enter both email and password', 'error');
+        return;
+      }
+
+      // Change button text
+      signinBtn.textContent = 'Signing in…';
+      signinBtn.disabled = true;
+      hideMessage();
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+showMessage('Signed in successfully!', 'success');
+
+// Redirect to dashboard after successful login
+setTimeout(() => {
+  window.location.href = 'dashboard.html';
+}, 1000);
+      } catch (error) {
+        let errorMsg = 'Something went wrong. Please try again.';
+        
+        if (error.code === 'auth/user-not-found') {
+          errorMsg = 'No account found with this email.';
+        } else if (error.code === 'auth/wrong-password') {
+          errorMsg = 'Incorrect password.';
+        } else if (error.code === 'auth/invalid-email') {
+          errorMsg = 'Invalid email address.';
+        } else if (error.code === 'auth/too-many-requests') {
+          errorMsg = 'Too many attempts. Please try again later.';
+        } else if (error.code === 'auth/invalid-credential') {
+          errorMsg = 'Invalid email or password.';
+        }
+
+        showMessage(errorMsg, 'error');
+      } finally {
+        signinBtn.textContent = 'Sign in';
+        signinBtn.disabled = false;
+      }
+    });
+
+    // Google Sign In
+googleBtn.addEventListener('click', async () => {
+  hideMessage();
+  googleBtn.disabled = true;
+
+  try {
+    await signInWithPopup(auth, googleProvider);
+    showMessage('Signed in with Google successfully!', 'success');
+
+    // Redirect to dashboard after successful Google login
+    setTimeout(() => {
+      window.location.href = 'dashboard.html';
+    }, 1000);
+
+  } catch (error) {
+    showMessage('Google sign-in failed. Please try again.', 'error');
+    console.error(error);
+  } finally {
+    googleBtn.disabled = false;
+  }
+});
+  </script>
 </body>
 </html>
