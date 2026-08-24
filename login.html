@@ -307,7 +307,8 @@
       getAuth, 
       signInWithEmailAndPassword, 
       GoogleAuthProvider, 
-      signInWithPopup 
+      signInWithRedirect,
+      getRedirectResult
     } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -351,7 +352,6 @@
       const type = passwordInput.type === 'password' ? 'text' : 'password';
       passwordInput.type = type;
       
-      // Simple icon change (you can improve the SVG if you want)
       if (type === 'text') {
         eyeIcon.innerHTML = `
           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
@@ -375,19 +375,17 @@
         return;
       }
 
-      // Change button text
       signinBtn.textContent = 'Signing in…';
       signinBtn.disabled = true;
       hideMessage();
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
-showMessage('Signed in successfully!', 'success');
+        showMessage('Signed in successfully!', 'success');
 
-// Redirect to dashboard after successful login
-setTimeout(() => {
-  window.location.href = 'dashboard.html';
-}, 1000);
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1000);
       } catch (error) {
         let errorMsg = 'Something went wrong. Please try again.';
         
@@ -410,27 +408,38 @@ setTimeout(() => {
       }
     });
 
-    // Google Sign In
-googleBtn.addEventListener('click', async () => {
-  hideMessage();
-  googleBtn.disabled = true;
+    // ========== GOOGLE SIGN-IN (REDIRECT) ==========
+    // Handle the result when user comes back from Google
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          showMessage('Signed in with Google successfully!', 'success');
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 800);
+        }
+      })
+      .catch((error) => {
+        if (error.code !== 'auth/popup-closed-by-user') {
+          showMessage('Google sign-in failed. Please try again.', 'error');
+          console.error(error);
+        }
+      });
 
-  try {
-    await signInWithPopup(auth, googleProvider);
-    showMessage('Signed in with Google successfully!', 'success');
+    // Start Google redirect when button is clicked
+    googleBtn.addEventListener('click', async () => {
+      hideMessage();
+      googleBtn.disabled = true;
 
-    // Redirect to dashboard after successful Google login
-    setTimeout(() => {
-      window.location.href = 'dashboard.html';
-    }, 1000);
-
-  } catch (error) {
-    showMessage('Google sign-in failed. Please try again.', 'error');
-    console.error(error);
-  } finally {
-    googleBtn.disabled = false;
-  }
-});
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        // Page will redirect to Google – no more code needed here
+      } catch (error) {
+        showMessage('Google sign-in failed. Please try again.', 'error');
+        console.error(error);
+        googleBtn.disabled = false;
+      }
+    });
   </script>
 </body>
 </html>
