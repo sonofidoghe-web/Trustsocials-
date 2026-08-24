@@ -280,154 +280,143 @@
       No account? <a href="signup.html">Create one free</a>
     </p>
   </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
+  import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    GoogleAuthProvider, 
+    signInWithRedirect,
+    getRedirectResult,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
-    import { 
-      getAuth, 
-      signInWithEmailAndPassword, 
-      GoogleAuthProvider, 
-      signInWithRedirect,
-      getRedirectResult,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyDDutrOemL5dqk4hIdQ1K2QmhiBhtegv8k",
+    authDomain: "trustsocials-8fc8b.firebaseapp.com",
+    projectId: "trustsocials-8fc8b",
+    storageBucket: "trustsocials-8fc8b.firebasestorage.app",
+    messagingSenderId: "675550258010",
+    appId: "1:675550258010:web:ec6444eb22b04a92fd0963",
+    measurementId: "G-KDVYRV55JD"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDutrOemL5dqk4hIdQ1K2QmhiBhtegv8k",
-      authDomain: "trustsocials-8fc8b.firebaseapp.com",
-      projectId: "trustsocials-8fc8b",
-      storageBucket: "trustsocials-8fc8b.firebasestorage.app",
-      messagingSenderId: "675550258010",
-      appId: "1:675550258010:web:ec6444eb22b04a92fd0963",
-      measurementId: "G-KDVYRV55JD"
-    };
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const googleProvider = new GoogleAuthProvider();
 
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const googleProvider = new GoogleAuthProvider();
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const signinBtn = document.getElementById('signinBtn');
+  const googleBtn = document.getElementById('googleBtn');
+  const messageBox = document.getElementById('message');
+  const togglePassword = document.getElementById('togglePassword');
+  const eyeIcon = document.getElementById('eyeIcon');
 
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const signinBtn = document.getElementById('signinBtn');
-    const googleBtn = document.getElementById('googleBtn');
-    const messageBox = document.getElementById('message');
-    const togglePassword = document.getElementById('togglePassword');
-    const eyeIcon = document.getElementById('eyeIcon');
+  function showMessage(text, type) {
+    messageBox.textContent = text;
+    messageBox.className = `message ${type}`;
+  }
 
-    function showMessage(text, type) {
-      messageBox.textContent = text;
-      messageBox.className = `message ${type}`;
+  function hideMessage() {
+    messageBox.className = 'message';
+    messageBox.textContent = '';
+  }
+
+  // Toggle password
+  togglePassword.addEventListener('click', () => {
+    const type = passwordInput.type === 'password' ? 'text' : 'password';
+    passwordInput.type = type;
+    
+    if (type === 'text') {
+      eyeIcon.innerHTML = `
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      `;
+    } else {
+      eyeIcon.innerHTML = `
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      `;
+    }
+  });
+
+  // Email login
+  signinBtn.addEventListener('click', async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!email || !password) {
+      showMessage('Please enter both email and password', 'error');
+      return;
     }
 
-    function hideMessage() {
-      messageBox.className = 'message';
-      messageBox.textContent = '';
-    }
+    signinBtn.textContent = 'Signing in…';
+    signinBtn.disabled = true;
+    hideMessage();
 
-    // Toggle password visibility
-    togglePassword.addEventListener('click', () => {
-      const type = passwordInput.type === 'password' ? 'text' : 'password';
-      passwordInput.type = type;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      showMessage('Signed in successfully!', 'success');
+      setTimeout(() => {
+        window.location.replace('dashboard.html');
+      }, 600);
+    } catch (error) {
+      let errorMsg = 'Something went wrong. Please try again.';
+      if (error.code === 'auth/user-not-found') errorMsg = 'No account found with this email.';
+      else if (error.code === 'auth/wrong-password') errorMsg = 'Incorrect password.';
+      else if (error.code === 'auth/invalid-email') errorMsg = 'Invalid email address.';
+      else if (error.code === 'auth/too-many-requests') errorMsg = 'Too many attempts. Please try again later.';
+      else if (error.code === 'auth/invalid-credential') errorMsg = 'Invalid email or password.';
       
-      if (type === 'text') {
-        eyeIcon.innerHTML = `
-          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-          <line x1="1" y1="1" x2="23" y2="23"/>
-        `;
-      } else {
-        eyeIcon.innerHTML = `
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        `;
-      }
-    });
+      showMessage(errorMsg, 'error');
+    } finally {
+      signinBtn.textContent = 'Sign in';
+      signinBtn.disabled = false;
+    }
+  });
 
-    // Email + Password Sign In
-    signinBtn.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
+  // ========== GOOGLE REDIRECT - FORCED ==========
 
-      if (!email || !password) {
-        showMessage('Please enter both email and password', 'error');
-        return;
-      }
+  // This runs as soon as the page loads
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User is logged in → force go to dashboard
+      showMessage('Signed in successfully!', 'success');
+      setTimeout(() => {
+        window.location.replace('dashboard.html');
+      }, 400);
+    }
+  });
 
-      signinBtn.textContent = 'Signing in…';
-      signinBtn.disabled = true;
-      hideMessage();
-
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showMessage('Signed in successfully!', 'success');
+  // Also try to catch the redirect result
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result && result.user) {
+        showMessage('Signed in with Google successfully!', 'success');
         setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 800);
-      } catch (error) {
-        let errorMsg = 'Something went wrong. Please try again.';
-        
-        if (error.code === 'auth/user-not-found') {
-          errorMsg = 'No account found with this email.';
-        } else if (error.code === 'auth/wrong-password') {
-          errorMsg = 'Incorrect password.';
-        } else if (error.code === 'auth/invalid-email') {
-          errorMsg = 'Invalid email address.';
-        } else if (error.code === 'auth/too-many-requests') {
-          errorMsg = 'Too many attempts. Please try again later.';
-        } else if (error.code === 'auth/invalid-credential') {
-          errorMsg = 'Invalid email or password.';
-        }
-
-        showMessage(errorMsg, 'error');
-      } finally {
-        signinBtn.textContent = 'Sign in';
-        signinBtn.disabled = false;
+          window.location.replace('dashboard.html');
+        }, 300);
       }
+    })
+    .catch((error) => {
+      console.error("Redirect error:", error);
     });
 
-    // ========== GOOGLE SIGN-IN (REDIRECT) ==========
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result && result.user) {
-          showMessage('Signed in with Google successfully!', 'success');
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 700);
-        }
-      })
+  // Button click starts the redirect
+  googleBtn.addEventListener('click', () => {
+    hideMessage();
+    googleBtn.disabled = true;
+    signInWithRedirect(auth, googleProvider)
       .catch((error) => {
-        console.error("Redirect error:", error);
-        showMessage(error.message || 'Google sign-in failed.', 'error');
-      });
-
-    // Also catch successful login via auth state
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Only redirect if we are still on the login page
-        const path = window.location.pathname.toLowerCase();
-        if (path.includes('login') || path.endsWith('/') || path === '') {
-          showMessage('Signed in successfully!', 'success');
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 600);
-        }
-      }
-    });
-
-    // Start Google redirect
-    googleBtn.addEventListener('click', async () => {
-      hideMessage();
-      googleBtn.disabled = true;
-
-      try {
-        await signInWithRedirect(auth, googleProvider);
-      } catch (error) {
         console.error(error);
         showMessage('Google sign-in failed. Please try again.', 'error');
         googleBtn.disabled = false;
-      }
-    });
-  </script>
+      });
+  });
+</script>
+  
 </body>
 </html>
