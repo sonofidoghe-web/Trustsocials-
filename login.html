@@ -45,7 +45,6 @@
       margin-bottom: 32px;
     }
 
-    /* Google button */
     .google-btn {
       width: 100%;
       display: flex;
@@ -67,11 +66,6 @@
       background: #f8f8f8;
     }
 
-    .google-btn img {
-      width: 20px;
-      height: 20px;
-    }
-
     .last-used {
       position: absolute;
       right: 12px;
@@ -82,7 +76,6 @@
       border-radius: 20px;
     }
 
-    /* Divider */
     .divider {
       display: flex;
       align-items: center;
@@ -103,7 +96,6 @@
       padding: 0 16px;
     }
 
-    /* Message box (same size as inputs) */
     .message {
       width: 100%;
       padding: 14px 16px;
@@ -127,7 +119,6 @@
       border: 1px solid #f5c6cb;
     }
 
-    /* Form labels & inputs */
     label {
       display: block;
       font-size: 15px;
@@ -197,7 +188,6 @@
       height: 20px;
     }
 
-    /* Sign in button */
     .signin-btn {
       width: 100%;
       padding: 16px;
@@ -221,7 +211,6 @@
       cursor: not-allowed;
     }
 
-    /* Bottom link */
     .bottom-text {
       text-align: center;
       margin-top: 28px;
@@ -242,13 +231,11 @@
 </head>
 <body>
   <div class="container">
-    <!-- Logo -->
     <img src="logo.png.jpg" alt="Trust Social" class="logo">
 
     <h1>Welcome back</h1>
     <p class="subtitle">Sign in to your TrustSocials account</p>
 
-    <!-- Google button -->
     <button class="google-btn" id="googleBtn">
       <svg width="20" height="20" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -264,16 +251,13 @@
       <span>or continue with email</span>
     </div>
 
-    <!-- Message box (appears before Email) -->
     <div id="message" class="message"></div>
 
-    <!-- Email -->
     <div class="input-group">
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="you@example.com" required>
     </div>
 
-    <!-- Password -->
     <div class="input-group">
       <div class="password-header">
         <label for="password">Password</label>
@@ -282,7 +266,6 @@
       <div class="password-wrapper">
         <input type="password" id="password" placeholder="••••••••" required>
         <button type="button" class="toggle-password" id="togglePassword">
-          <!-- Eye icon -->
           <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
@@ -291,7 +274,6 @@
       </div>
     </div>
 
-    <!-- Sign in button -->
     <button class="signin-btn" id="signinBtn">Sign in</button>
 
     <p class="bottom-text">
@@ -300,7 +282,6 @@
   </div>
 
   <script type="module">
-    // Your Firebase config
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
     import { 
@@ -308,7 +289,8 @@
       signInWithEmailAndPassword, 
       GoogleAuthProvider, 
       signInWithRedirect,
-      getRedirectResult
+      getRedirectResult,
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -321,13 +303,11 @@
       measurementId: "G-KDVYRV55JD"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
 
-    // Elements
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const signinBtn = document.getElementById('signinBtn');
@@ -336,7 +316,6 @@
     const togglePassword = document.getElementById('togglePassword');
     const eyeIcon = document.getElementById('eyeIcon');
 
-    // Show message (green or red)
     function showMessage(text, type) {
       messageBox.textContent = text;
       messageBox.className = `message ${type}`;
@@ -382,10 +361,9 @@
       try {
         await signInWithEmailAndPassword(auth, email, password);
         showMessage('Signed in successfully!', 'success');
-
         setTimeout(() => {
           window.location.href = 'dashboard.html';
-        }, 1000);
+        }, 800);
       } catch (error) {
         let errorMsg = 'Something went wrong. Please try again.';
         
@@ -409,34 +387,44 @@
     });
 
     // ========== GOOGLE SIGN-IN (REDIRECT) ==========
-    // Handle the result when user comes back from Google
     getRedirectResult(auth)
       .then((result) => {
         if (result && result.user) {
           showMessage('Signed in with Google successfully!', 'success');
           setTimeout(() => {
             window.location.href = 'dashboard.html';
-          }, 800);
+          }, 700);
         }
       })
       .catch((error) => {
-        if (error.code !== 'auth/popup-closed-by-user') {
-          showMessage('Google sign-in failed. Please try again.', 'error');
-          console.error(error);
-        }
+        console.error("Redirect error:", error);
+        showMessage(error.message || 'Google sign-in failed.', 'error');
       });
 
-    // Start Google redirect when button is clicked
+    // Also catch successful login via auth state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Only redirect if we are still on the login page
+        const path = window.location.pathname.toLowerCase();
+        if (path.includes('login') || path.endsWith('/') || path === '') {
+          showMessage('Signed in successfully!', 'success');
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 600);
+        }
+      }
+    });
+
+    // Start Google redirect
     googleBtn.addEventListener('click', async () => {
       hideMessage();
       googleBtn.disabled = true;
 
       try {
         await signInWithRedirect(auth, googleProvider);
-        // Page will redirect to Google – no more code needed here
       } catch (error) {
-        showMessage('Google sign-in failed. Please try again.', 'error');
         console.error(error);
+        showMessage('Google sign-in failed. Please try again.', 'error');
         googleBtn.disabled = false;
       }
     });
