@@ -543,6 +543,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // ========== DENO API ==========
+    const DENO_API = "https://trustsocials-esim-api.sonofidoghe-web.deno.net";
+
     // ========== MARKUP RATES ==========
     const AIRTIME_MARKUP = 0.05;      // 5%
     const DATA_MARKUP = 0.30;         // 30%
@@ -705,8 +708,8 @@
         });
         orderDocId = orderRef.id;
 
-        // 3. Call ClubKonnect
-        const res = await fetch("https://trustsocials.vercel.app/api/clubkonnect-airtime", {
+        // 3. Call Deno API
+        const res = await fetch(`${DENO_API}/airtime`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -769,7 +772,7 @@
         document.getElementById("dataBuyBtn").disabled = true;
 
         try {
-          const res = await fetch("https://trustsocials.vercel.app/api/clubkonnect-plans");
+          const res = await fetch(`${DENO_API}/data-plans`);
           const data = await res.json();
 
           const networkMap = {
@@ -881,8 +884,8 @@
         });
         orderDocId = orderRef.id;
 
-        // 3. Call ClubKonnect
-        const res = await fetch("https://trustsocials.vercel.app/api/clubkonnect-data", {
+        // 3. Call Deno API
+        const res = await fetch(`${DENO_API}/data`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1007,8 +1010,8 @@
         });
         orderDocId = orderRef.id;
 
-        // 3. Call ClubKonnect
-        const res = await fetch("https://trustsocials.vercel.app/api/clubkonnect-electricity", {
+        // 3. Call Deno API
+        const res = await fetch(`${DENO_API}/electricity`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
