@@ -1,17 +1,21 @@
 export default async function handler(req, res) {
-  // Allow GitHub Pages to call this Vercel API
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://sonofidoghe-web.github.io"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "POST, OPTIONS"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type"
-  );
+  // ========== CORS - Allow both GitHub Pages and Vercel ==========
+  const allowedOrigins = [
+    "https://sonofidoghe-web.github.io",
+    "https://trustsocials.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173"
+  ];
+
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
   // CORS preflight
   if (req.method === "OPTIONS") {
