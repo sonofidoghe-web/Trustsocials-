@@ -706,7 +706,7 @@
         orderDocId = orderRef.id;
 
         // 3. Call ClubKonnect
-        const res = await fetch("/api/clubkonnect-airtime", {
+        const res = await fetch("https://trustsocials.vercel.app/api/clubkonnect-airtime", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -769,7 +769,7 @@
         document.getElementById("dataBuyBtn").disabled = true;
 
         try {
-          const res = await fetch("/api/clubkonnect-plans");
+          const res = await fetch("https://trustsocials.vercel.app/api/clubkonnect-plans");
           const data = await res.json();
 
           const networkMap = {
@@ -882,7 +882,7 @@
         orderDocId = orderRef.id;
 
         // 3. Call ClubKonnect
-        const res = await fetch("/api/clubkonnect-data", {
+        const res = await fetch("https://trustsocials.vercel.app/api/clubkonnect-data", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1008,7 +1008,7 @@
         orderDocId = orderRef.id;
 
         // 3. Call ClubKonnect
-        const res = await fetch("/api/clubkonnect-electricity", {
+        const res = await fetch("https://trustsocials.vercel.app/api/clubkonnect-electricity", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
