@@ -530,6 +530,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // ========== DENO API ==========
+    const DENO_API = "https://trustsocials-esim-api.sonofidoghe-web.deno.net";
+
     // ========== MARKUP ==========
     const CABLE_MARKUP = 0.05;   // 5%
     const BETTING_MARKUP = 0.05; // 5%
@@ -633,7 +636,7 @@
         select.innerHTML = `<option value="">Loading packages...</option>`;
 
         try {
-          const res = await fetch(`/api/clubkonnect-cable-packages?provider=${selectedCableProvider}`);
+          const res = await fetch(`${DENO_API}/cable-packages?provider=${selectedCableProvider}`);
           const data = await res.json();
 
           select.innerHTML = `<option value="">Select a package</option>`;
@@ -710,7 +713,7 @@
       btn.textContent = "Verifying...";
 
       try {
-        const res = await fetch("/api/clubkonnect-cable-verify", {
+        const res = await fetch(`${DENO_API}/cable-verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -788,8 +791,8 @@
         });
         orderDocId = orderRef.id;
 
-        // 3. Call ClubKonnect
-        const res = await fetch("/api/clubkonnect-cable", {
+        // 3. Call Deno API
+        const res = await fetch(`${DENO_API}/cable-buy`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -914,8 +917,8 @@
         });
         orderDocId = orderRef.id;
 
-        // 3. Call ClubKonnect
-        const res = await fetch("/api/clubkonnect-betting", {
+        // 3. Call Deno API
+        const res = await fetch(`${DENO_API}/betting`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
