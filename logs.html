@@ -1,917 +1,954 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logs Store - Trust Social</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #f8f9fa;
-      color: #111;
-      min-height: 100vh;
-      padding-bottom: 40px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logs Store · Temmy Social</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green: #55701f;
+    --green-dark: #465c1a;
+    --green-light: #eef1e3;
+    --ink: #171717;
+    --gray-600: #6b7280;
+    --gray-500: #8a8a8a;
+    --gray-border: #e6e6e6;
+    --gray-bg: #fafafa;
+    --red: #e0392b;
+    --orange: #d9822b;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-full: 999px;
+  }
 
-    /* ===== FIXED TOP ===== */
-    .fixed-top {
-      position: sticky;
-      top: 0;
-      z-index: 90;
-      background: #ffffff;
-      transition: background 0.3s ease;
-    }
-    .fixed-top.scrolled {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color:var(--ink);
+    background:#ffffff;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{text-decoration:none;color:inherit;}
+  button{font-family:inherit;}
 
-    .header {
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #eee;
-    }
-    .menu-toggle { background: none; border: none; cursor: pointer; padding: 4px; color: #333; }
-    .header-right { display: flex; align-items: center; gap: 12px; }
-    .badge-no { background: #f0f0f0; color: #555; font-size: 13px; font-weight: 500; padding: 4px 10px; border-radius: 20px; }
-    .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #444; }
-    .avatar {
-      width: 36px; height: 36px; background: #3d6b1e; color: white;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-weight: 600; font-size: 14px;
-    }
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block;}
 
-    .title-area { padding: 20px 16px 12px; }
-    .title-area h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
-    .title-area p { color: #666; font-size: 15px; line-height: 1.4; }
+  /* ---------- App shell ---------- */
+  .app{display:flex;min-height:100vh;}
 
-    .listings-bar {
-      padding: 0 16px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    .listings-info h2 { font-size: 17px; font-weight: 600; margin-bottom: 2px; }
-    .listings-info .count { font-size: 13px; color: #666; }
-    .filter-btn {
-      width: 42px; height: 42px; border: 1.5px solid #e0e0e0; border-radius: 12px;
-      background: white; display: flex; align-items: center; justify-content: center; cursor: pointer;
-    }
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:280px;flex-shrink:0;background:#fcfcfb;border-right:1px solid var(--gray-border);
+    padding:20px 16px 16px;position:fixed;top:0;left:0;bottom:0;
+    transform:translateX(-100%);transition:transform .25s ease;z-index:40;
+    display:flex;flex-direction:column;overflow-y:auto;
+  }
+  .app.sidebar-open .sidebar{transform:translateX(0);}
 
-    /* ===== SIDEBAR (left) ===== */
-    .sidebar-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200;
-      opacity: 0; visibility: hidden; transition: all 0.3s ease;
-    }
-    .sidebar-overlay.active { opacity: 1; visibility: visible; }
-    .sidebar {
-      position: fixed; top: 0; left: 0; width: 300px; height: 100%;
-      background: white; z-index: 300; transform: translateX(-100%);
-      transition: transform 0.3s ease; overflow-y: auto; padding: 20px 0 30px;
-    }
-    .sidebar.active { transform: translateX(0); }
-    .sidebar-logo { padding: 0 20px 20px; border-bottom: 1px solid #eee; }
-    .sidebar-logo img { height: 40px; }
-    .menu-section { padding: 20px 12px 8px; }
-    .menu-section-title {
-      font-size: 13px; color: #888; font-weight: 500; padding: 0 12px 10px;
-      text-transform: uppercase; letter-spacing: 0.3px;
-    }
-    .menu-item {
-      display: flex; align-items: center; gap: 14px; padding: 12px 14px;
-      border-radius: 12px; color: #333; text-decoration: none; font-size: 15px;
-      font-weight: 500; margin-bottom: 2px;
-    }
-    .menu-item:hover { background: #f5f5f5; }
-    .menu-item.active { background: #f0f7eb; color: #3d6b1e; }
-    .menu-item svg { width: 20px; height: 20px; flex-shrink: 0; }
-    .soon-badge { margin-left: auto; background: #e8f5e9; color: #2e7d32; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; }
-    .signout-item { color: #d32f2f !important; margin-top: 10px; }
-    .signout-item:hover { background: #ffebee !important; }
+  .sidebar-header{
+    display:flex;align-items:center;padding:4px 10px 18px;
+    border-bottom:1px solid var(--gray-border);margin-bottom:14px;
+  }
+  .logo-slot{display:flex;align-items:center;gap:8px;font-weight:800;font-size:22px;color:var(--green);font-style:italic;}
+  .logo-slot img{height:40px;display:block;}
 
-    /* ===== FILTER PANEL (slides from RIGHT) ===== */
-    .filter-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 400;
-      opacity: 0; visibility: hidden; transition: all 0.3s ease;
-    }
-    .filter-overlay.active { opacity: 1; visibility: visible; }
+  .nav-label{font-size:12px;font-weight:700;color:var(--gray-500);margin:14px 10px 8px;}
+  .nav-label:first-of-type{margin-top:4px;}
 
-    .filter-panel {
-      position: fixed; top: 0; right: 0; width: 85%; max-width: 360px; height: 100%;
-      background: white; z-index: 500; transform: translateX(100%);
-      transition: transform 0.3s ease; overflow-y: auto; display: flex; flex-direction: column;
-    }
-    .filter-panel.active { transform: translateX(0); }
+  .nav-item{
+    display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;
+    font-size:15.5px;font-weight:600;color:#2b2b2b;margin-bottom:2px;
+  }
+  .nav-item .icon{width:19px;height:19px;color:#2b2b2b;flex-shrink:0;}
+  .nav-item.active{background:#f1f1ef;}
+  .nav-item.disabled{color:#a9a9a9;cursor:default;}
+  .nav-item.disabled .icon{color:#a9a9a9;}
+  .nav-item .soon-pill{
+    margin-left:auto;font-size:11px;font-weight:700;color:var(--green);
+    background:var(--green-light);padding:2px 9px;border-radius:var(--radius-full);
+  }
+  .nav-spacer{flex:1;}
+  .nav-item.signout{color:var(--red);margin-top:6px;}
+  .nav-item.signout .icon{color:var(--red);}
 
-    .filter-header {
-      padding: 20px 20px 16px;
-      border-bottom: 1px solid #eee;
-      position: relative;
-    }
-    .filter-header h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-    .filter-header p { font-size: 14px; color: #666; line-height: 1.4; }
-    .filter-close {
-      position: absolute; top: 18px; right: 18px;
-      background: none; border: none; font-size: 24px; cursor: pointer; color: #666;
-    }
+  .sidebar-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:35;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .app.sidebar-open .sidebar-overlay{opacity:1;pointer-events:auto;}
 
-    .filter-search {
-      padding: 16px 20px;
-      border-bottom: 1px solid #eee;
-    }
-    .filter-search input {
-      width: 100%; padding: 12px 16px 12px 42px; border: 1.5px solid #e0e0e0;
-      border-radius: 12px; font-size: 15px; outline: none;
-    }
-    .filter-search { position: relative; }
-    .filter-search svg {
-      position: absolute; left: 34px; top: 50%; transform: translateY(-50%); color: #999;
-    }
+  /* ---------- Main ---------- */
+  .main-wrapper{flex:1;min-width:0;display:flex;flex-direction:column;}
 
-    .filter-list { padding: 16px 20px; flex: 1; }
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+    border-bottom:1px solid var(--gray-border);background:#fff;
+  }
+  .icon-btn{
+    background:none;border:none;width:38px;height:38px;display:flex;align-items:center;
+    justify-content:center;border-radius:10px;color:#171717;cursor:pointer;
+  }
+  .icon-btn:hover{background:#f4f4f4;}
+  .topbar-right{display:flex;align-items:center;gap:6px;}
+  .naira-pill{
+    border:1px solid var(--gray-border);border-radius:var(--radius-full);padding:6px 14px;
+    font-weight:800;font-size:14px;color:var(--green);margin-right:4px;
+  }
+  .avatar{
+    width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:14px;margin-left:6px;flex-shrink:0;
+  }
+  .avatar-green{background:#4d6b1f;}
+  .avatar-orange{background:#d9822b;}
+  .avatar-purple{background:#8b5cf6;}
+  .avatar-yellow{background:#e0b32d;}
+  .avatar-blue{background:#3b82f6;}
 
-    .filter-all {
-      background: #3d6b1e; color: white; border-radius: 14px; padding: 16px;
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 16px; font-weight: 600; font-size: 15px; cursor: pointer;
-    }
-    .filter-all .count {
-      background: white; color: #3d6b1e; font-size: 13px; font-weight: 600;
-      padding: 3px 10px; border-radius: 20px;
-    }
+  /* Fixed top (header + title + listings bar) scrolls with slight blur, like the site's other sticky headers */
+  .fixed-top{position:sticky;top:0;z-index:20;background:#fff;transition:background .3s ease;}
+  .fixed-top.scrolled{background:rgba(255,255,255,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
 
-    .category-item {
-      background: white; border: 1.5px solid #eee; border-radius: 14px;
-      padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
-      display: flex; justify-content: space-between; align-items: center;
-      transition: border-color 0.2s;
-    }
-    .category-item:hover { border-color: #3d6b1e; }
-    .category-item.active { border-color: #3d6b1e; background: #f0f7eb; }
+  .content{max-width:720px;width:100%;margin:0 auto;padding:0 20px 60px;}
 
-    .cat-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-    .cat-info p { font-size: 12px; color: #777; }
-    .cat-count {
-      background: #f0f0f0; color: #555; font-size: 13px; font-weight: 500;
-      width: 28px; height: 28px; border-radius: 50%; display: flex;
-      align-items: center; justify-content: center;
-    }
+  .title-area{padding:26px 0 10px;}
+  .title-area h1{font-size:26px;font-weight:800;margin:0 0 6px;letter-spacing:-.3px;}
+  .title-area p{margin:0;color:var(--gray-600);font-size:15.5px;line-height:1.4;}
 
-    /* ===== PRODUCT LIST ===== */
-    .container { max-width: 480px; margin: 0 auto; padding: 8px 16px 40px; }
-    .desc-text { font-size: 14px; color: #666; line-height: 1.5; margin-bottom: 20px; padding: 0 4px; }
+  .listings-bar{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 0 12px;gap:12px;}
+  .listings-info h2{font-size:19px;font-weight:800;margin:0 0 2px;}
+  .listings-info .count{font-size:13.5px;color:var(--gray-600);}
+  .filter-btn{
+    width:42px;height:42px;border:1.5px solid var(--gray-border);border-radius:12px;background:#fff;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  }
+  .filter-btn:hover{border-color:var(--green);}
 
-    .product-card {
-      background: white; border-radius: 16px; padding: 16px; margin-bottom: 14px;
-      border: 1px solid #f0f0f0; display: flex; gap: 14px;
-    }
-    .product-icon {
-      width: 56px; height: 56px; border-radius: 14px; object-fit: cover; flex-shrink: 0;
-      background: #3d6b1e;
-    }
-    .product-info { flex: 1; min-width: 0; }
-    .product-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-    .product-title { font-size: 15px; font-weight: 600; line-height: 1.3; }
-    .product-sku { font-size: 12px; background: #f0f0f0; color: #555; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
-    .product-price { font-size: 17px; font-weight: 700; color: #3d6b1e; margin: 4px 0; }
-    .product-desc {
-      font-size: 13px; color: #666; line-height: 1.4; margin-bottom: 12px;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-    }
-    .product-actions { display: flex; gap: 8px; justify-content: flex-end; }
-    .preview-btn, .buy-btn {
-      border: none; border-radius: 24px; padding: 9px 16px; font-size: 13px;
-      font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
-    }
-    .preview-btn { background: #f0f0f0; color: #333; }
-    .buy-btn { background: #3d6b1e; color: white; }
+  .desc-text{font-size:14.5px;color:var(--gray-600);line-height:1.5;margin:0 0 20px;padding-bottom:16px;border-bottom:1px solid var(--gray-border);}
 
-    .empty-state { text-align: center; padding: 60px 20px; color: #888; }
+  /* ---------- Product cards ---------- */
+  .product-card{
+    border:1px solid var(--gray-border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px;
+    display:flex;gap:14px;
+  }
+  .product-icon{
+    width:56px;height:56px;border-radius:14px;object-fit:cover;flex-shrink:0;
+    background:var(--green);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:800;font-size:13px;
+  }
+  .product-info{flex:1;min-width:0;}
+  .product-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:4px;}
+  .product-title{font-size:15.5px;font-weight:800;line-height:1.3;}
+  .product-sku{font-size:12px;background:var(--gray-bg);color:var(--gray-600);padding:2px 9px;border-radius:var(--radius-full);white-space:nowrap;flex-shrink:0;}
+  .product-price{font-size:17.5px;font-weight:800;color:var(--green);margin:4px 0;}
+  .product-desc{
+    font-size:13.5px;color:var(--gray-600);line-height:1.4;margin-bottom:14px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .product-actions{display:flex;gap:8px;justify-content:flex-end;}
+  .preview-btn, .buy-btn{
+    border:none;border-radius:var(--radius-full);padding:9px 16px;font-size:13.5px;
+    font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;
+  }
+  .preview-btn{background:var(--green-light);color:var(--green);}
+  .preview-btn:hover{background:#e2e7d5;}
+  .buy-btn{background:var(--green);color:#fff;}
+  .buy-btn:hover{background:var(--green-dark);}
+  .preview-btn .icon, .buy-btn .icon{width:15px;height:15px;}
 
-    /* ===== POPUPS ===== */
-    .popup-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
-      display: flex; align-items: center; justify-content: center;
-      padding: 20px; opacity: 0; visibility: hidden; transition: all 0.25s ease;
-    }
-    .popup-overlay.active { opacity: 1; visibility: visible; }
+  .empty-state{text-align:center;padding:60px 20px;color:var(--gray-500);font-size:14.5px;}
 
-    .popup {
-      background: white; width: 100%; max-width: 380px; border-radius: 18px;
-      max-height: 90vh; overflow-y: auto;
-    }
+  /* ---------- Right-side filter panel ---------- */
+  .filter-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;
+    opacity:0;visibility:hidden;transition:all .3s ease;
+  }
+  .filter-overlay.active{opacity:1;visibility:visible;}
 
-    /* Warning (orange) */
-    .warning-header {
-      background: #fff3e0; padding: 18px 20px; border-bottom: 1px solid #ffe0b2;
-    }
-    .warning-header h3 {
-      font-size: 17px; font-weight: 700; color: #e65100;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .warning-body { padding: 20px; font-size: 14px; line-height: 1.55; color: #333; }
-    .warning-actions { padding: 0 20px 20px; display: flex; gap: 10px; }
-    .warning-btn {
-      flex: 1; padding: 13px; border-radius: 12px; font-size: 15px;
-      font-weight: 600; cursor: pointer; border: none;
-    }
-    .btn-cancel { background: #f0f0f0; color: #333; }
-    .btn-continue { background: #e65100; color: white; }
+  .filter-panel{
+    position:fixed;top:0;right:0;width:85%;max-width:360px;height:100%;background:#fff;z-index:500;
+    transform:translateX(100%);transition:transform .3s ease;overflow-y:auto;display:flex;flex-direction:column;
+  }
+  .filter-panel.active{transform:translateX(0);}
 
-    /* Product confirm + Credential popup */
-    .confirm-header { padding: 20px 20px 10px; }
-    .confirm-header h3 { font-size: 18px; font-weight: 700; }
-    .confirm-body { padding: 10px 20px 20px; }
-    .confirm-price { font-size: 22px; font-weight: 700; color: #3d6b1e; margin: 8px 0; }
-    .credential-box {
-      background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 12px;
-      padding: 14px; margin: 16px 0; font-family: monospace; font-size: 14px;
-      word-break: break-all; line-height: 1.5;
-    }
-    .confirm-actions { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 10px; }
-    .btn-primary {
-      background: #3d6b1e; color: white; border: none; border-radius: 12px;
-      padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%;
-    }
-    .btn-secondary {
-      background: #f0f0f0; color: #333; border: none; border-radius: 12px;
-      padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%;
-    }
+  .filter-header{padding:22px 20px 16px;border-bottom:1px solid var(--gray-border);position:relative;}
+  .filter-header h2{font-size:19px;font-weight:800;margin:0 0 6px;}
+  .filter-header p{font-size:13.5px;color:var(--gray-600);line-height:1.4;margin:0;}
+  .filter-close{
+    position:absolute;top:18px;right:18px;background:none;border:none;font-size:22px;
+    cursor:pointer;color:var(--gray-600);line-height:1;
+  }
 
-    /* Preview popup */
-    .preview-img {
-      width: 100%; border-radius: 12px; margin-bottom: 12px;
-    }
-  </style>
+  .filter-search{padding:16px 20px;border-bottom:1px solid var(--gray-border);position:relative;}
+  .filter-search input{
+    width:100%;padding:12px 16px 12px 42px;border:1.5px solid var(--gray-border);border-radius:12px;
+    font-size:14.5px;outline:none;font-family:inherit;
+  }
+  .filter-search input:focus{border-color:var(--green);}
+  .filter-search .icon{position:absolute;left:34px;top:50%;transform:translateY(-50%);color:var(--gray-500);width:17px;height:17px;}
+
+  .filter-list{padding:16px 20px;flex:1;}
+
+  .filter-all{
+    background:var(--green);color:#fff;border-radius:var(--radius-md);padding:15px 16px;
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;
+    font-weight:700;font-size:14.5px;cursor:pointer;
+  }
+  .filter-all .count{
+    background:#fff;color:var(--green);font-size:12.5px;font-weight:800;
+    padding:3px 10px;border-radius:var(--radius-full);
+  }
+
+  .category-item{
+    background:#fff;border:1.5px solid var(--gray-border);border-radius:var(--radius-md);
+    padding:13px 15px;margin-bottom:9px;cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;transition:border-color .2s;
+  }
+  .category-item:hover{border-color:var(--green);}
+  .category-item.active{border-color:var(--green);background:var(--green-light);}
+  .cat-info h4{font-size:13.5px;font-weight:700;margin:0 0 3px;}
+  .cat-info p{font-size:12px;color:var(--gray-500);margin:0;}
+  .cat-count{
+    background:var(--gray-bg);color:var(--gray-600);font-size:12.5px;font-weight:700;
+    width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+
+  /* ---------- Popups ---------- */
+  .popup-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+    opacity:0;visibility:hidden;transition:all .25s ease;
+  }
+  .popup-overlay.active{opacity:1;visibility:visible;}
+  .popup{background:#fff;width:100%;max-width:380px;border-radius:var(--radius-lg);max-height:90vh;overflow-y:auto;}
+
+  .warning-header{background:#fff3e0;padding:18px 20px;border-bottom:1px solid #ffe0b2;}
+  .warning-header h3{font-size:16.5px;font-weight:800;color:var(--orange);display:flex;align-items:center;gap:8px;margin:0;}
+  .warning-body{padding:20px;font-size:14px;line-height:1.55;color:#333;}
+  .warning-actions{padding:0 20px 20px;display:flex;gap:10px;}
+  .warning-btn{flex:1;padding:13px;border-radius:12px;font-size:14.5px;font-weight:700;cursor:pointer;border:none;font-family:inherit;}
+  .btn-cancel{background:var(--gray-bg);color:var(--ink);}
+  .btn-continue{background:var(--orange);color:#fff;}
+
+  .confirm-header{padding:20px 20px 8px;}
+  .confirm-header h3{font-size:17.5px;font-weight:800;margin:0;}
+  .confirm-body{padding:8px 20px 20px;}
+  .confirm-price{font-size:22px;font-weight:800;color:var(--green);margin:8px 0;}
+  .credential-box{
+    background:var(--gray-bg);border:1px solid var(--gray-border);border-radius:12px;
+    padding:14px;margin:16px 0;font-family:monospace;font-size:13.5px;word-break:break-all;line-height:1.5;
+  }
+  .confirm-actions{padding:0 20px 20px;display:flex;flex-direction:column;gap:10px;}
+  .btn-primary{
+    background:var(--green);color:#fff;border:none;border-radius:12px;padding:14px;
+    font-size:14.5px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;
+  }
+  .btn-primary:hover{background:var(--green-dark);}
+  .btn-secondary{
+    background:var(--gray-bg);color:var(--ink);border:none;border-radius:12px;padding:14px;
+    font-size:14.5px;font-weight:700;cursor:pointer;width:100%;font-family:inherit;
+  }
+  .preview-img{width:100%;border-radius:12px;margin-bottom:12px;}
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 1024px){
+    .sidebar{position:sticky;transform:none;z-index:1;}
+    .sidebar-overlay{display:none;}
+    #sidebarToggle{display:none;}
+    .content{padding:0 40px 60px;max-width:760px;}
+  }
+</style>
 </head>
 <body>
+<div class="app" id="app">
 
-  <!-- LEFT SIDEBAR OVERLAY -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <!-- LEFT SIDEBAR -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <img src="logo.png" alt="Trust Social">
+  <!-- ===================== LEFT SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-slot">
+        <img src="logo-placeholder.png" alt="Temmy Social" onerror="this.style.display='none'; this.parentNode.append('Temmy Social')">
+      </div>
     </div>
 
-    <div class="menu-section">
-      <div class="menu-section-title">Main</div>
-      <a href="dashboard.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    <nav>
+      <div class="nav-label">Main</div>
+      <a class="nav-item" href="dashboard.html">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
         Dashboard
       </a>
-      <a href="wallet.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M22 10H2"/><path d="M6 14h.01"/></svg>
+      <a class="nav-item" href="wallet.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="M16 12h.01"/><path d="M3 9h18"/></svg>
         Wallet
       </a>
-      <a href="orders.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <a class="nav-item" href="orders.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 3h12l1 5H5l1-5Z"/><path d="M5 8h14l-1 12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 8Z"/><path d="M9 11a3 3 0 0 0 6 0"/></svg>
         Orders
       </a>
-      <a href="transactions.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      <a class="nav-item" href="transactions.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
         Transactions
       </a>
-    </div>
 
-    <div class="menu-section">
-      <div class="menu-section-title">Store</div>
-      <a href="logs.html" class="menu-item active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      <div class="nav-label">Store</div>
+      <a class="nav-item active" href="logs.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
         Logs Store
       </a>
-      <a href="tools.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      <a class="nav-item" href="tools.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.3 2.3-2-2 2.3-2.3Z"/></svg>
         Tools Store
       </a>
-      <a href="sms.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        SMS Numbers <span class="soon-badge">Soon</span>
+      <a class="nav-item" href="sms.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4V4Z"/><path d="M8 9h8M8 12h5"/></svg>
+        SMS Numbers
       </a>
-      <a href="sme.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        SME Boosting <span class="soon-badge">Soon</span>
+      <a class="nav-item disabled" href="#">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>
+        SME Boosting
+        <span class="soon-pill">Soon</span>
       </a>
-    </div>
-<div class="menu-section">
-  <div class="menu-section-title">Services</div>
 
-  <a href="airtime.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2v4"/>
-      <path d="M12 18v4"/>
-      <path d="M4.93 4.93l2.83 2.83"/>
-      <path d="M16.24 16.24l2.83 2.83"/>
-      <path d="M2 12h4"/>
-      <path d="M18 12h4"/>
-      <path d="M4.93 19.07l2.83-2.83"/>
-      <path d="M16.24 7.76l2.83-2.83"/>
-      <circle cx="12" cy="12" r="4"/>
-    </svg>
-    Airtime & Bills
-  </a>
+      <div class="nav-label">Services</div>
+      <a class="nav-item" href="airtime.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="4"/></svg>
+        Airtime &amp; Bills
+      </a>
+      <a class="nav-item" href="cable.html">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+        Cable TV &amp; Betting
+      </a>
+      <a class="nav-item" href="gaming.html">
+        <svg class="icon" viewBox="0 0 24 24"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+        Gaming
+      </a>
+      <a class="nav-item" href="cards.html">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Cards
+      </a>
+      <a class="nav-item" href="proxies.html">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Proxies
+      </a>
+      <a class="nav-item" href="esim.html">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        eSIM
+      </a>
+      <a class="nav-item" href="api-docs.html">
+        <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        API &amp; Docs
+      </a>
 
-  <a href="cable.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
-      <polyline points="17 2 12 7 7 2"/>
-    </svg>
-    Cable TV & Betting
-  </a>
-
-  <a href="gaming.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="6" y1="12" x2="10" y2="12"/>
-      <line x1="8" y1="10" x2="8" y2="14"/>
-      <line x1="15" y1="13" x2="15.01" y2="13"/>
-      <line x1="18" y1="11" x2="18.01" y2="11"/>
-      <rect x="2" y="6" width="20" height="12" rx="2"/>
-    </svg>
-    Gaming
-  </a>
-
-  <a href="cards.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-      <line x1="1" y1="10" x2="23" y2="10"/>
-    </svg>
-    Cards
-  </a>
-
-  <a href="proxies.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="2" y1="12" x2="22" y2="12"/>
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-    </svg>
-    Proxies
-  </a>
-
-  <a href="esim.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-      <line x1="12" y1="18" x2="12.01" y2="18"/>
-    </svg>
-    eSIM
-  </a>
-
-  <a href="api-docs.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="16 18 22 12 16 6"/>
-      <polyline points="8 6 2 12 8 18"/>
-    </svg>
-    API & Docs
-  </a>
-</div>
-    <div class="menu-section">
-      <div class="menu-section-title">Account</div>
-      <a href="support.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+      <div class="nav-label">Account</div>
+      <a class="nav-item" href="support.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
         Support
       </a>
-      <a href="notification.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <a class="nav-item" href="notification.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
         Notification
       </a>
-      <a href="profile.html" class="menu-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 0v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <a class="nav-item" href="profile.html">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
         Profile
       </a>
-    </div>
+    </nav>
 
-    <div class="menu-section" style="border-top:1px solid #eee; margin-top:10px; padding-top:10px;">
-      <a href="#" class="menu-item signout-item" id="signOutBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sign out
-      </a>
-    </div>
-  </div>
+    <div class="nav-spacer"></div>
+    <a class="nav-item signout" href="#" id="signOutBtn">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      Sign out
+    </a>
+  </aside>
 
-  <!-- FILTER PANEL (RIGHT) -->
+  <div class="sidebar-overlay" id="overlay"></div>
+
+  <!-- ===================== RIGHT FILTER PANEL ===================== -->
   <div class="filter-overlay" id="filterOverlay"></div>
   <div class="filter-panel" id="filterPanel">
     <div class="filter-header">
       <h2>Browse categories</h2>
       <p>Switch between listings and jump straight into the category you want.</p>
-      <button class="filter-close" id="closeFilter">×</button>
+      <button class="filter-close" id="closeFilter">&times;</button>
     </div>
 
     <div class="filter-search">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="categorySearch" placeholder="Search categories...">
     </div>
 
-    <div class="filter-list" id="categoryList">
-      <!-- Categories will be loaded here -->
-    </div>
+    <div class="filter-list" id="categoryList"></div>
   </div>
 
-  <!-- FIXED TOP -->
-  <div class="fixed-top" id="fixedTop">
-    <header class="header">
-      <button class="menu-toggle" id="menuToggle">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
-        </svg>
-      </button>
-      <div class="header-right">
-        <span class="badge-no">No</span>
-        <button class="icon-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-          </svg>
+  <!-- ===================== MAIN ===================== -->
+  <div class="main-wrapper">
+    <div class="fixed-top" id="fixedTop">
+      <header class="topbar">
+        <button class="icon-btn" id="sidebarToggle" aria-label="Toggle menu">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
         </button>
-        <button class="icon-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-        </button>
-        <div class="avatar" id="userAvatar">--</div>
-      </div>
-    </header>
 
-    <div class="title-area">
-      <h1>Logs Store</h1>
-      <p>Browse and purchase verified social media accounts</p>
-    </div>
+        <div class="topbar-right">
+          <div class="naira-pill" id="nairaBalancePill">₦0</div>
+          <button class="icon-btn" aria-label="Toggle theme">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
+          <button class="icon-btn" aria-label="Notifications">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </button>
+          <div class="avatar avatar-green" id="userAvatar">--</div>
+        </div>
+      </header>
 
-    <div class="listings-bar">
-      <div class="listings-info">
-        <h2>All listings</h2>
-        <div class="count" id="listingsCount">0 accounts available</div>
-      </div>
-      <button class="filter-btn" id="filterBtn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="4" y1="6" x2="20" y2="6"/>
-          <line x1="8" y1="12" x2="16" y2="12"/>
-          <line x1="11" y1="18" x2="13" y2="18"/>
-        </svg>
-      </button>
-    </div>
-  </div>
+      <div class="content" style="padding-bottom:0;">
+        <div class="title-area">
+          <h1>Logs Store</h1>
+          <p>Browse and purchase verified social media accounts</p>
+        </div>
 
-  <div class="container">
-    <p class="desc-text">
-      Browse available verified social media accounts and buy instantly from your wallet.
-    </p>
-    <div id="productsList">
-      <div class="empty-state">Loading products...</div>
-    </div>
-  </div>
-
-  <!-- WARNING POPUP -->
-  <div class="popup-overlay" id="warningPopup">
-    <div class="popup">
-      <div class="warning-header">
-        <h3>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
-          Important Notice
-        </h3>
-      </div>
-      <div class="warning-body">
-        Everything sold on this website should not be used for impersonation, fraud, or any other illegal activities. 
-        You are fully responsible for how you use anything you purchase from us.
-      </div>
-      <div class="warning-actions">
-        <button class="warning-btn btn-cancel" id="cancelWarning">Cancel</button>
-        <button class="warning-btn btn-continue" id="continueWarning">I Understand</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONFIRM / CREDENTIAL POPUP -->
-  <div class="popup-overlay" id="confirmPopup">
-    <div class="popup">
-      <div class="confirm-header">
-        <h3 id="confirmTitle">Product</h3>
-      </div>
-      <div class="confirm-body">
-        <div class="confirm-price" id="confirmPrice">₦0</div>
-        <div id="confirmDesc" style="font-size:14px;color:#555;margin-bottom:12px;"></div>
-        
-        <div id="credentialSection" style="display:none;">
-          <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Your Credentials:</div>
-          <div class="credential-box" id="credentialBox"></div>
+        <div class="listings-bar">
+          <div class="listings-info">
+            <h2 id="listingsTitle">All listings</h2>
+            <div class="count" id="listingsCount">0 accounts available</div>
+          </div>
+          <button class="filter-btn" id="filterBtn" aria-label="Browse categories">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          </button>
         </div>
       </div>
-      <div class="confirm-actions" id="confirmActions">
-        <button class="btn-primary" id="finalBuyBtn">Buy Now</button>
-        <button class="btn-secondary" id="closeConfirm">Cancel</button>
+    </div>
+
+    <main class="content">
+      <p class="desc-text">Browse available verified social media accounts and buy instantly from your wallet.</p>
+      <div id="productsList">
+        <div class="empty-state">Loading products...</div>
       </div>
+    </main>
+  </div>
+</div>
+
+<!-- WARNING POPUP -->
+<div class="popup-overlay" id="warningPopup">
+  <div class="popup">
+    <div class="warning-header">
+      <h3>
+        <svg class="icon" viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Important Notice
+      </h3>
+    </div>
+    <div class="warning-body">
+      Everything sold on this website should not be used for impersonation, fraud, or any other illegal activities. You are fully responsible for how you use anything you purchase from us.
+    </div>
+    <div class="warning-actions">
+      <button class="warning-btn btn-cancel" id="cancelWarning">Cancel</button>
+      <button class="warning-btn btn-continue" id="continueWarning">I Understand</button>
     </div>
   </div>
+</div>
 
-  <!-- PREVIEW POPUP -->
-  <div class="popup-overlay" id="previewPopup">
-    <div class="popup">
-      <div class="confirm-header">
-        <h3>Product Preview</h3>
-      </div>
-      <div class="confirm-body" id="previewContent"></div>
-      <div class="confirm-actions">
-        <button class="btn-secondary" id="closePreview">Close</button>
+<!-- CONFIRM / CREDENTIAL POPUP -->
+<div class="popup-overlay" id="confirmPopup">
+  <div class="popup">
+    <div class="confirm-header">
+      <h3 id="confirmTitle">Product</h3>
+    </div>
+    <div class="confirm-body">
+      <div class="confirm-price" id="confirmPrice">₦0</div>
+      <div id="confirmDesc" style="font-size:14px;color:var(--gray-600);margin-bottom:12px;"></div>
+
+      <div id="credentialSection" style="display:none;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Your Credentials:</div>
+        <div class="credential-box" id="credentialBox"></div>
       </div>
     </div>
+    <div class="confirm-actions" id="confirmActions">
+      <button class="btn-primary" id="finalBuyBtn">Buy Now</button>
+      <button class="btn-secondary" id="closeConfirm">Cancel</button>
+    </div>
   </div>
-    <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-analytics.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-    import { 
-      getFirestore, collection, query, where, getDocs, doc, getDoc, 
-      updateDoc, addDoc, increment, serverTimestamp, orderBy 
-    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+</div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDDutrOemL5dqk4hIdQ1K2QmhiBhtegv8k",
-      authDomain: "trustsocials-8fc8b.firebaseapp.com",
-      projectId: "trustsocials-8fc8b",
-      storageBucket: "trustsocials-8fc8b.firebasestorage.app",
-      messagingSenderId: "675550258010",
-      appId: "1:675550258010:web:ec6444eb22b04a92fd0963",
-      measurementId: "G-KDVYRV55JD"
-    };
+<!-- PREVIEW POPUP -->
+<div class="popup-overlay" id="previewPopup">
+  <div class="popup">
+    <div class="confirm-header">
+      <h3>Product Preview</h3>
+    </div>
+    <div class="confirm-body" id="previewContent"></div>
+    <div class="confirm-actions">
+      <button class="btn-secondary" id="closePreview">Close</button>
+    </div>
+  </div>
+</div>
 
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  import {
+    getFirestore, collection, query, where, getDocs, doc, getDoc,
+    updateDoc, addDoc, increment, serverTimestamp, orderBy
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-    // ========== ELEMENTS ==========
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const filterPanel = document.getElementById('filterPanel');
-    const filterOverlay = document.getElementById('filterOverlay');
-    const fixedTop = document.getElementById('fixedTop');
+  const firebaseConfig = {
+    apiKey: "AIzaSyDDutrOemL5dqk4hIdQ1K2QmhiBhtegv8k",
+    authDomain: "trustsocials-8fc8b.firebaseapp.com",
+    projectId: "trustsocials-8fc8b",
+    storageBucket: "trustsocials-8fc8b.firebasestorage.app",
+    messagingSenderId: "675550258010",
+    appId: "1:675550258010:web:ec6444eb22b04a92fd0963",
+    measurementId: "G-KDVYRV55JD"
+  };
 
-    let currentUser = null;
-    let selectedProduct = null;
-    let allProducts = [];
-    let allCategories = [];
+  const fbApp = initializeApp(firebaseConfig);
+  const auth = getAuth(fbApp);
+  const db = getFirestore(fbApp);
 
-    // ========== SIDEBAR ==========
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      sidebar.classList.add('active');
-      sidebarOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    });
-    sidebarOverlay.addEventListener('click', closeSidebar);
-    function closeSidebar() {
-      sidebar.classList.remove('active');
-      sidebarOverlay.classList.remove('active');
-      document.body.style.overflow = '';
-    }
+  // These Netlify Functions can only run on Netlify itself, so this page calls
+  // them by full URL — that way the page works whether it's opened from your
+  // Netlify domain, a custom domain, or GitHub Pages. Update this if your
+  // Netlify site name ever changes.
+  const NETLIFY_FUNCTIONS_BASE = 'https://emmysocials.netlify.app/.netlify/functions';
 
-    // ========== FILTER PANEL (RIGHT) ==========
-    document.getElementById('filterBtn').addEventListener('click', () => {
-      filterPanel.classList.add('active');
-      filterOverlay.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    });
-    document.getElementById('closeFilter').addEventListener('click', closeFilter);
-    filterOverlay.addEventListener('click', closeFilter);
-    function closeFilter() {
-      filterPanel.classList.remove('active');
-      filterOverlay.classList.remove('active');
-      document.body.style.overflow = '';
-    }
+  // ---------- Sidebar ----------
+  const app = document.getElementById('app');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const overlay = document.getElementById('overlay');
+  sidebarToggle.addEventListener('click', () => app.classList.toggle('sidebar-open'));
+  overlay.addEventListener('click', () => app.classList.remove('sidebar-open'));
 
-    // ========== SCROLL TRANSPARENCY ==========
-    window.addEventListener('scroll', () => {
-      fixedTop.classList.toggle('scrolled', window.scrollY > 10);
-    });
+  // ---------- Right filter panel ----------
+  const filterPanel = document.getElementById('filterPanel');
+  const filterOverlay = document.getElementById('filterOverlay');
+  document.getElementById('filterBtn').addEventListener('click', () => {
+    filterPanel.classList.add('active');
+    filterOverlay.classList.add('active');
+  });
+  document.getElementById('closeFilter').addEventListener('click', closeFilter);
+  filterOverlay.addEventListener('click', closeFilter);
+  function closeFilter() {
+    filterPanel.classList.remove('active');
+    filterOverlay.classList.remove('active');
+  }
 
-    // ========== SIGN OUT ==========
-    document.getElementById('signOutBtn').addEventListener('click', async (e) => {
-      e.preventDefault();
-      await signOut(auth);
+  // ---------- Sticky header blur on scroll ----------
+  const fixedTop = document.getElementById('fixedTop');
+  window.addEventListener('scroll', () => {
+    fixedTop.classList.toggle('scrolled', window.scrollY > 10);
+  });
+
+  // ---------- Avatar colour ----------
+  const AVATAR_COLORS = ['green', 'orange', 'purple', 'yellow', 'blue'];
+  function applyAvatarColor(colorName) {
+    const el = document.getElementById('userAvatar');
+    AVATAR_COLORS.forEach(c => el.classList.remove('avatar-' + c));
+    el.classList.add('avatar-' + colorName);
+  }
+  function colorForUser(uid) {
+    let hash = 0;
+    for (const ch of uid) hash = (hash * 31 + ch.charCodeAt(0)) % AVATAR_COLORS.length;
+    return AVATAR_COLORS[hash];
+  }
+
+  // ---------- Sign out ----------
+  document.getElementById('signOutBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    await signOut(auth);
+    window.location.href = 'login.html';
+  });
+
+  function fmtNaira(n) { return `₦${Number(n).toLocaleString()}`; }
+
+  let currentUser = null;
+  let selectedProduct = null;
+  let allProducts = [];
+  let allCategories = [];
+
+  // ---------- Warning popup ----------
+  document.getElementById('cancelWarning').addEventListener('click', () => {
+    document.getElementById('warningPopup').classList.remove('active');
+    selectedProduct = null;
+  });
+  document.getElementById('continueWarning').addEventListener('click', () => {
+    document.getElementById('warningPopup').classList.remove('active');
+    if (selectedProduct) openConfirmPopup(selectedProduct);
+  });
+
+  // ---------- Confirm / buy popup ----------
+  document.getElementById('closeConfirm').addEventListener('click', () => {
+    document.getElementById('confirmPopup').classList.remove('active');
+  });
+  document.getElementById('finalBuyBtn').addEventListener('click', async () => {
+    if (!selectedProduct || !currentUser) return;
+    await processPurchase(selectedProduct);
+  });
+
+  // ---------- Preview popup ----------
+  document.getElementById('closePreview').addEventListener('click', () => {
+    document.getElementById('previewPopup').classList.remove('active');
+  });
+
+  // ---------- Auth ----------
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
       window.location.href = 'login.html';
-    });
-
-    // ========== WARNING POPUP ==========
-    document.getElementById('cancelWarning').addEventListener('click', () => {
-      document.getElementById('warningPopup').classList.remove('active');
-      selectedProduct = null;
-    });
-
-    document.getElementById('continueWarning').addEventListener('click', () => {
-      document.getElementById('warningPopup').classList.remove('active');
-      if (selectedProduct) openConfirmPopup(selectedProduct);
-    });
-
-    // ========== CONFIRM / BUY POPUP ==========
-    document.getElementById('closeConfirm').addEventListener('click', () => {
-      document.getElementById('confirmPopup').classList.remove('active');
-    });
-
-    document.getElementById('finalBuyBtn').addEventListener('click', async () => {
-      if (!selectedProduct || !currentUser) return;
-      await processPurchase(selectedProduct);
-    });
-
-    // ========== PREVIEW POPUP ==========
-    document.getElementById('closePreview').addEventListener('click', () => {
-      document.getElementById('previewPopup').classList.remove('active');
-    });
-
-    // ========== MAIN AUTH ==========
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
-        return;
-      }
-      currentUser = user;
-
-      // Avatar
-      const displayName = user.displayName || user.email.split('@')[0];
-      const names = displayName.trim().split(' ');
-      let initials = names[0].charAt(0).toUpperCase();
-      if (names.length > 1) initials += names[names.length - 1].charAt(0).toUpperCase();
-      document.getElementById('userAvatar').textContent = initials;
-
-      await loadCategories();
-      await loadProducts();
-    });
-
-    // ========== LOAD CATEGORIES ==========
-    async function loadCategories() {
-      try {
-        const snap = await getDocs(query(collection(db, 'categories'), orderBy('order', 'asc')));
-        allCategories = [];
-        snap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
-
-        // Also calculate real counts from products
-        const productSnap = await getDocs(query(collection(db, 'products'), where('category', '==', 'logs'), where('stock', '>', 0)));
-        const countMap = {};
-        productSnap.forEach(p => {
-          const cat = p.data().categoryName || 'Uncategorized';
-          countMap[cat] = (countMap[cat] || 0) + 1;
-        });
-
-        renderCategories(countMap);
-      } catch (err) {
-        console.error('Categories error:', err);
-        // fallback - still show All listings
-        renderCategories({});
-      }
+      return;
     }
+    currentUser = user;
 
-    function renderCategories(countMap) {
-      const list = document.getElementById('categoryList');
-      let total = Object.values(countMap).reduce((a, b) => a + b, 0);
+    const displayName = user.displayName || user.email.split('@')[0];
+    const names = displayName.trim().split(' ');
+    let initials = names[0].charAt(0).toUpperCase();
+    if (names.length > 1) initials += names[names.length - 1].charAt(0).toUpperCase();
+    document.getElementById('userAvatar').textContent = initials;
+    applyAvatarColor(colorForUser(user.uid));
 
-      let html = `
-        <div class="filter-all" onclick="filterByCategory('all')">
-          All listings
-          <span class="count">${total}</span>
+    try {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const balance = userSnap.exists() ? (userSnap.data().balance || 0) : 0;
+      document.getElementById('nairaBalancePill').textContent = fmtNaira(balance);
+    } catch (e) {}
+
+    await loadCategories();
+    await loadProducts();
+  });
+
+  // ---------- Categories ----------
+  async function loadCategories() {
+    try {
+      const snap = await getDocs(query(collection(db, 'categories'), orderBy('order', 'asc')));
+      allCategories = [];
+      snap.forEach(d => allCategories.push({ id: d.id, ...d.data() }));
+
+      const productSnap = await getDocs(query(collection(db, 'products'), where('category', '==', 'logs'), where('stock', '>', 0)));
+      const countMap = {};
+      productSnap.forEach(p => {
+        const cat = p.data().categoryName || 'Uncategorized';
+        countMap[cat] = (countMap[cat] || 0) + 1;
+      });
+
+      // Section 2: merge in live Facebook categories/counts from SMvaults
+      try {
+        const fbRes = await fetch(`${NETLIFY_FUNCTIONS_BASE}/facebook-products`);
+        const fbData = await fbRes.json();
+        if (fbData.success) {
+          fbData.products.forEach(p => {
+            if (p.stock > 0) {
+              countMap[p.categoryName] = (countMap[p.categoryName] || 0) + 1;
+              if (!allCategories.find(c => c.name === p.categoryName)) {
+                allCategories.push({ id: 'sm_' + p.categoryName, name: p.categoryName, description: 'Facebook · live stock' });
+              }
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Facebook category merge skipped:', e);
+      }
+
+      renderCategories(countMap);
+    } catch (err) {
+      console.error('Categories error:', err);
+      renderCategories({});
+    }
+  }
+
+  function renderCategories(countMap) {
+    const list = document.getElementById('categoryList');
+    let total = Object.values(countMap).reduce((a, b) => a + b, 0);
+
+    let html = `
+      <div class="filter-all" data-cat="all">
+        All listings
+        <span class="count">${total}</span>
+      </div>
+    `;
+
+    allCategories.forEach(cat => {
+      const count = countMap[cat.name] || 0;
+      html += `
+        <div class="category-item" data-cat="${cat.name}">
+          <div class="cat-info">
+            <h4>${cat.flag || ''} ${cat.name}</h4>
+            <p>${cat.description || ''}</p>
+          </div>
+          <div class="cat-count">${count}</div>
         </div>
       `;
+    });
 
-      allCategories.forEach(cat => {
-        const count = countMap[cat.name] || 0;
+    list.innerHTML = html;
+    document.getElementById('listingsCount').textContent = `${total} accounts available`;
+
+    list.querySelectorAll('[data-cat]').forEach(el => {
+      el.addEventListener('click', () => filterByCategory(el.dataset.cat));
+    });
+  }
+
+  // ---------- Products ----------
+  // Section 2 (external API) will merge into `allProducts` here later,
+  // alongside the Firestore query below — the render + count logic
+  // already works off `allProducts` as a single combined list.
+  async function loadProducts(categoryFilter = 'all') {
+    const list = document.getElementById('productsList');
+    list.innerHTML = `<div class="empty-state">Loading products...</div>`;
+
+    try {
+      const q = query(
+        collection(db, 'products'),
+        where('category', '==', 'logs'),
+        where('stock', '>', 0)
+      );
+
+      const snap = await getDocs(q);
+      allProducts = [];
+      snap.forEach(d => allProducts.push({ id: d.id, ...d.data(), source: 'firestore' }));
+
+      // Section 2: live Facebook products from SMvaults (via our Netlify function)
+      try {
+        const fbRes = await fetch(`${NETLIFY_FUNCTIONS_BASE}/facebook-products`);
+        const fbData = await fbRes.json();
+        if (fbData.success) {
+          const inStock = fbData.products.filter(p => p.stock > 0);
+          allProducts = allProducts.concat(inStock);
+        }
+      } catch (e) {
+        console.warn('Facebook products fetch failed:', e);
+      }
+
+      let filtered = allProducts;
+      if (categoryFilter !== 'all') {
+        filtered = allProducts.filter(p => p.categoryName === categoryFilter);
+      }
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state">No products available in this category</div>`;
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(p => {
+        const icon = p.iconUrl
+          ? `<img src="${p.iconUrl}" class="product-icon" alt="">`
+          : `<div class="product-icon">${(p.shortName || 'LOG').substring(0,6)}</div>`;
+
         html += `
-          <div class="category-item" onclick="filterByCategory('${cat.name}')">
-            <div class="cat-info">
-              <h4>${cat.flag || ''} ${cat.name}</h4>
-              <p>${cat.description || ''}</p>
+          <div class="product-card">
+            ${icon}
+            <div class="product-info">
+              <div class="product-top">
+                <div class="product-title">${p.title || 'Product'}</div>
+                <div class="product-sku">${p.sku || (p.source === 'smvaults' ? '#' + p.sourceId : '#' + p.id.slice(0,6))}</div>
+              </div>
+              <div class="product-price">${fmtNaira(p.price || 0)}</div>
+              <div class="product-desc">${p.description || ''}</div>
+              <div class="product-actions">
+                <button class="preview-btn" data-preview="${p.id}">
+                  <svg class="icon" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Preview
+                </button>
+                <button class="buy-btn" data-buy="${p.id}">
+                  <svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                  Buy
+                </button>
+              </div>
             </div>
-            <div class="cat-count">${count}</div>
           </div>
         `;
       });
-
       list.innerHTML = html;
-      document.getElementById('listingsCount').textContent = `${total} accounts available`;
+
+      list.querySelectorAll('[data-preview]').forEach(btn => {
+        btn.addEventListener('click', () => openPreview(btn.dataset.preview));
+      });
+      list.querySelectorAll('[data-buy]').forEach(btn => {
+        btn.addEventListener('click', () => startBuy(btn.dataset.buy));
+      });
+
+    } catch (err) {
+      console.error(err);
+      list.innerHTML = `<div class="empty-state">Unable to load products</div>`;
+    }
+  }
+
+  function filterByCategory(catName) {
+    closeFilter();
+    loadProducts(catName);
+    document.getElementById('listingsTitle').textContent = catName === 'all' ? 'All listings' : catName;
+
+    document.querySelectorAll('.category-item, .filter-all').forEach(el => {
+      el.classList.toggle('active', el.dataset.cat === catName);
+    });
+  }
+
+  // ---------- Preview ----------
+  function openPreview(productId) {
+    const p = allProducts.find(x => x.id === productId);
+    if (!p) return;
+
+    const content = document.getElementById('previewContent');
+    let html = `<p style="margin-bottom:12px;font-size:15px;font-weight:700;">${p.title}</p>`;
+
+    if (p.previewUrls && p.previewUrls.length > 0) {
+      p.previewUrls.forEach(url => {
+        html += `<img src="${url}" class="preview-img" alt="Preview">`;
+      });
+    } else {
+      html += `<p style="color:var(--gray-500);">No preview available for this product.</p>`;
     }
 
-    // ========== LOAD PRODUCTS ==========
-    async function loadProducts(categoryFilter = 'all') {
-      const list = document.getElementById('productsList');
-      list.innerHTML = `<div class="empty-state">Loading products...</div>`;
+    content.innerHTML = html;
+    document.getElementById('previewPopup').classList.add('active');
+  }
 
-      try {
-        let q = query(
-          collection(db, 'products'),
-          where('category', '==', 'logs'),
-          where('stock', '>', 0)
-        );
+  // ---------- Start buy (warning) ----------
+  function startBuy(productId) {
+    selectedProduct = allProducts.find(x => x.id === productId);
+    if (!selectedProduct) return;
+    document.getElementById('warningPopup').classList.add('active');
+  }
 
-        const snap = await getDocs(q);
-        allProducts = [];
-        snap.forEach(d => allProducts.push({ id: d.id, ...d.data() }));
+  function openConfirmPopup(p) {
+    document.getElementById('confirmTitle').textContent = p.title;
+    document.getElementById('confirmPrice').textContent = fmtNaira(p.price);
+    document.getElementById('confirmDesc').textContent = p.description || '';
+    document.getElementById('credentialSection').style.display = 'none';
+    document.getElementById('credentialBox').textContent = '';
 
-        let filtered = allProducts;
-        if (categoryFilter !== 'all') {
-          filtered = allProducts.filter(p => p.categoryName === categoryFilter);
-        }
+    document.getElementById('finalBuyBtn').style.display = 'block';
+    document.getElementById('finalBuyBtn').textContent = 'Buy Now';
+    document.getElementById('finalBuyBtn').disabled = false;
+    document.getElementById('closeConfirm').textContent = 'Cancel';
 
-        if (filtered.length === 0) {
-          list.innerHTML = `<div class="empty-state">No products available in this category</div>`;
-          return;
-        }
+    const oldBtn = document.getElementById('viewOrdersBtn');
+    if (oldBtn) oldBtn.remove();
 
-        let html = '';
-        filtered.forEach(p => {
-          const icon = p.iconUrl 
-            ? `<img src="${p.iconUrl}" class="product-icon" alt="">`
-            : `<div class="product-icon" style="display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;">${(p.shortName || 'LOG').substring(0,6)}</div>`;
+    document.getElementById('confirmPopup').classList.add('active');
+  }
 
-          html += `
-            <div class="product-card">
-              ${icon}
-              <div class="product-info">
-                <div class="product-top">
-                  <div class="product-title">${p.title || 'Product'}</div>
-                  <div class="product-sku">${p.sku || '#' + p.id.slice(0,6)}</div>
-                </div>
-                <div class="product-price">₦${Number(p.price || 0).toLocaleString()}</div>
-                <div class="product-desc">${p.description || ''}</div>
-                <div class="product-actions">
-                  <button class="preview-btn" onclick="openPreview('${p.id}')">Preview</button>
-                  <button class="buy-btn" onclick="startBuy('${p.id}')">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                    </svg>
-                    Buy
-                  </button>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-        list.innerHTML = html;
+  // ---------- Process purchase ----------
+  async function processPurchase(p) {
+    const btn = document.getElementById('finalBuyBtn');
+    btn.textContent = 'Processing...';
+    btn.disabled = true;
 
-      } catch (err) {
-        console.error(err);
-        list.innerHTML = `<div class="empty-state">Unable to load products</div>`;
-      }
-    }
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      const balance = userSnap.exists() ? (userSnap.data().balance || 0) : 0;
 
-    // ========== FILTER BY CATEGORY ==========
-    window.filterByCategory = function(catName) {
-      closeFilter();
-      loadProducts(catName);
-      document.querySelector('.listings-info h2').textContent = catName === 'all' ? 'All listings' : catName;
-    };
-
-    // ========== PREVIEW ==========
-    window.openPreview = function(productId) {
-      const p = allProducts.find(x => x.id === productId);
-      if (!p) return;
-
-      const content = document.getElementById('previewContent');
-      let html = `<p style="margin-bottom:12px;font-size:15px;font-weight:600;">${p.title}</p>`;
-
-      if (p.previewUrls && p.previewUrls.length > 0) {
-        p.previewUrls.forEach(url => {
-          html += `<img src="${url}" class="preview-img" alt="Preview">`;
-        });
-      } else {
-        html += `<p style="color:#888;">No preview available for this product.</p>`;
+      if (balance < p.price) {
+        alert('Insufficient balance. Please top up your wallet.');
+        btn.textContent = 'Buy Now';
+        btn.disabled = false;
+        return;
       }
 
-      content.innerHTML = html;
-      document.getElementById('previewPopup').classList.add('active');
-    };
+      let credentialText;
+      let referenceId;
 
-    // ========== START BUY (WARNING) ==========
-    window.startBuy = function(productId) {
-      selectedProduct = allProducts.find(x => x.id === productId);
-      if (!selectedProduct) return;
-      document.getElementById('warningPopup').classList.add('active');
-    };
+      if (p.source === 'smvaults') {
+        // Facebook product: place the order with the supplier first (key stays server-side)
+        const buyRes = await fetch(`${NETLIFY_FUNCTIONS_BASE}/facebook-purchase`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourceId: p.sourceId, quantity: 1 })
+        });
+        const buyData = await buyRes.json();
 
-    // ========== CONFIRM POPUP ==========
-    function openConfirmPopup(p) {
-      document.getElementById('confirmTitle').textContent = p.title;
-      document.getElementById('confirmPrice').textContent = `₦${Number(p.price).toLocaleString()}`;
-      document.getElementById('confirmDesc').textContent = p.description || '';
-      document.getElementById('credentialSection').style.display = 'none';
-      document.getElementById('credentialBox').textContent = '';
-      
-      document.getElementById('finalBuyBtn').style.display = 'block';
-      document.getElementById('finalBuyBtn').textContent = 'Buy Now';
-      document.getElementById('closeConfirm').textContent = 'Cancel';
-
-      // Remove old "View Orders" button if exists
-      const oldBtn = document.getElementById('viewOrdersBtn');
-      if (oldBtn) oldBtn.remove();
-
-      document.getElementById('confirmPopup').classList.add('active');
-    }
-
-    // ========== PROCESS PURCHASE ==========
-    async function processPurchase(p) {
-      const btn = document.getElementById('finalBuyBtn');
-      btn.textContent = 'Processing...';
-      btn.disabled = true;
-
-      try {
-        // 1. Get user balance
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        const balance = userSnap.exists() ? (userSnap.data().balance || 0) : 0;
-
-        if (balance < p.price) {
-          alert('Insufficient balance. Please top up your wallet.');
+        if (!buyData.success) {
+          alert(buyData.error || 'Purchase failed. Please try again.');
           btn.textContent = 'Buy Now';
           btn.disabled = false;
           return;
         }
 
-        // 2. Deduct balance
+        credentialText = Array.isArray(buyData.data) ? buyData.data.join('\n') : (buyData.data || 'No credential available');
+        referenceId = buyData.transId ? ('SM-' + buyData.transId) : ('ORD-' + Date.now().toString(36).toUpperCase());
+
+        // Stock lives with the supplier, not Firestore, so only the balance is deducted here
         await updateDoc(userRef, {
           balance: increment(-p.price),
           totalPurchases: increment(1)
         });
 
-        // 3. Reduce stock
+      } else {
+        // Local Firestore product: original flow, unchanged
+        credentialText = p.credential || 'No credential provided';
+        referenceId = 'ORD-' + Date.now().toString(36).toUpperCase();
+
+        await updateDoc(userRef, {
+          balance: increment(-p.price),
+          totalPurchases: increment(1)
+        });
+
         const productRef = doc(db, 'products', p.id);
-        await updateDoc(productRef, {
-          stock: increment(-1)
-        });
-
-        // 4. Create Order (with secret credential)
-        await addDoc(collection(db, 'orders'), {
-          userId: currentUser.uid,
-          productId: p.id,
-          productName: p.title,
-          amount: p.price,
-          credential: p.credential || 'No credential provided',
-          status: 'completed',
-          createdAt: serverTimestamp()
-        });
-
-        // 5. Create Transaction (negative)
-        await addDoc(collection(db, 'transactions'), {
-          userId: currentUser.uid,
-          type: 'purchase',
-          productName: p.title,
-          amount: -p.price,
-          status: 'completed',
-          reference: 'ORD-' + Date.now().toString(36).toUpperCase(),
-          createdAt: serverTimestamp()
-        });
-
-        // 6. Simple notification
-        await addDoc(collection(db, 'notifications'), {
-          userId: currentUser.uid,
-          title: 'Purchase Successful',
-          message: `You successfully purchased: ${p.title}`,
-          read: false,
-          createdAt: serverTimestamp()
-        });
-
-        // 7. Show credential
-        document.getElementById('credentialSection').style.display = 'block';
-        document.getElementById('credentialBox').textContent = p.credential || 'No credential available';
-
-        btn.style.display = 'none';
-
-        // Add "View Orders" button
-        const actions = document.getElementById('confirmActions');
-        const viewBtn = document.createElement('button');
-        viewBtn.id = 'viewOrdersBtn';
-        viewBtn.className = 'btn-primary';
-        viewBtn.textContent = 'View all purchased credentials in Orders page';
-        viewBtn.onclick = () => window.location.href = 'orders.html';
-        actions.insertBefore(viewBtn, actions.firstChild);
-
-        document.getElementById('closeConfirm').textContent = 'Close';
-
-        // Refresh product list
-        loadProducts();
-
-      } catch (err) {
-        console.error(err);
-        alert('Purchase failed. Please try again.');
-        btn.textContent = 'Buy Now';
-        btn.disabled = false;
+        await updateDoc(productRef, { stock: increment(-1) });
       }
-    }
 
-    // Category search
-    document.getElementById('categorySearch').addEventListener('input', (e) => {
-      const term = e.target.value.toLowerCase();
-      document.querySelectorAll('.category-item').forEach(item => {
-        const text = item.innerText.toLowerCase();
-        item.style.display = text.includes(term) ? 'flex' : 'none';
+      await addDoc(collection(db, 'orders'), {
+        userId: currentUser.uid,
+        productId: p.id,
+        productName: p.title,
+        amount: p.price,
+        credential: credentialText,
+        status: 'completed',
+        createdAt: serverTimestamp()
       });
+
+      await addDoc(collection(db, 'transactions'), {
+        userId: currentUser.uid,
+        type: 'purchase',
+        productName: p.title,
+        amount: -p.price,
+        status: 'completed',
+        reference: referenceId,
+        createdAt: serverTimestamp()
+      });
+
+      await addDoc(collection(db, 'notifications'), {
+        userId: currentUser.uid,
+        title: 'Purchase Successful',
+        message: `You successfully purchased: ${p.title}`,
+        read: false,
+        createdAt: serverTimestamp()
+      });
+
+      document.getElementById('credentialSection').style.display = 'block';
+      document.getElementById('credentialBox').textContent = credentialText;
+      btn.style.display = 'none';
+
+      const actions = document.getElementById('confirmActions');
+      const viewBtn = document.createElement('button');
+      viewBtn.id = 'viewOrdersBtn';
+      viewBtn.className = 'btn-primary';
+      viewBtn.textContent = 'View all purchased credentials in Orders page';
+      viewBtn.onclick = () => window.location.href = 'orders.html';
+      actions.insertBefore(viewBtn, actions.firstChild);
+
+      document.getElementById('closeConfirm').textContent = 'Close';
+
+      const newBalance = balance - p.price;
+      document.getElementById('nairaBalancePill').textContent = fmtNaira(newBalance);
+
+      loadProducts();
+
+    } catch (err) {
+      console.error(err);
+      alert('Purchase failed. Please try again.');
+      btn.textContent = 'Buy Now';
+      btn.disabled = false;
+    }
+  }
+
+  // ---------- Category search ----------
+  document.getElementById('categorySearch').addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll('.category-item').forEach(item => {
+      const text = item.innerText.toLowerCase();
+      item.style.display = text.includes(term) ? 'flex' : 'none';
     });
-  </script>
+  });
+</script>
 </body>
 </html>
