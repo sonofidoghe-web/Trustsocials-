@@ -3,267 +3,427 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SMS Numbers - Trust Social</title>
-
+<title>SMS Numbers · Temmy Social</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f8f9fa;color:#111;min-height:100vh;padding-bottom:50px}
-.header{position:sticky;top:0;z-index:100;background:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;transition:.3s}
-.header.scrolled{background:rgba(255,255,255,.85);backdrop-filter:blur(12px)}
-.menu-toggle,.icon-btn{background:none;border:none;cursor:pointer;padding:4px;color:#333}
-.header-right{display:flex;align-items:center;gap:12px}
-.badge-no{background:#f0f0f0;color:#555;font-size:13px;font-weight:500;padding:4px 10px;border-radius:20px}
-.avatar{width:36px;height:36px;background:#3d6b1e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
-.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;opacity:0;visibility:hidden;transition:.3s}
-.sidebar-overlay.active{opacity:1;visibility:visible}
-.sidebar{position:fixed;top:0;left:0;width:300px;height:100%;background:#fff;z-index:300;transform:translateX(-100%);transition:.3s;overflow-y:auto;padding:20px 0 30px}
-.sidebar.active{transform:translateX(0)}
-.sidebar-logo{padding:0 20px 20px;border-bottom:1px solid #eee}
-.sidebar-logo img{height:40px}
-.menu-section{padding:20px 12px 8px}
-.menu-section-title{font-size:13px;color:#888;font-weight:500;padding:0 12px 10px;text-transform:uppercase;letter-spacing:.3px}
-.menu-item{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:12px;color:#333;text-decoration:none;font-size:15px;font-weight:500;margin-bottom:2px}
-.menu-item:hover{background:#f5f5f5}
-.menu-item.active{background:#f0f7eb;color:#3d6b1e}
-.menu-item svg{width:20px;height:20px;flex-shrink:0}
-.soon-badge{margin-left:auto;background:#e8f5e9;color:#2e7d32;font-size:11px;font-weight:500;padding:2px 8px;border-radius:10px}
-.signout-item{color:#d32f2f!important}
-.container{max-width:480px;margin:0 auto;padding:24px 16px}
-h1{font-size:26px;font-weight:700;margin-bottom:6px}
-.subtitle{color:#666;font-size:15px;margin-bottom:24px}
-.balance-card{background:#f0f7eb;border:1px solid #dcebd2;border-radius:14px;padding:14px 16px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between}
-.balance-label{color:#666;font-size:13px;margin-bottom:3px}
-.balance-value{color:#3d6b1e;font-size:20px;font-weight:700}
-.buy-card{background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
-.section-title{font-size:16px;font-weight:600;margin-bottom:12px}
-.providers{display:flex;flex-direction:column;gap:8px;margin-bottom:26px}
-.provider-card{background:#fff;border:1.5px solid #ddd;border-radius:14px;padding:13px 12px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s}
-.provider-card:hover{border-color:#3d6b1e}
-.provider-card.active{border-color:#3d6b1e;background:#f0f7eb}
-.provider-icon{width:40px;height:40px;border-radius:12px;background:#f0f7eb;color:#3d6b1e;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
-.provider-info{flex:1}
-.provider-name{font-size:15px;font-weight:600;margin-bottom:3px}
-.provider-description{color:#777;font-size:12px}
-.check{width:22px;height:22px;border-radius:50%;border:1.5px solid #ccc;display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px}
-.provider-card.active .check{background:#3d6b1e;border-color:#3d6b1e;color:#fff}
-.country-area,.service-area{margin-bottom:24px}
-.select-box{position:relative}
-.select-box select{width:100%;appearance:none;padding:14px 42px 14px 14px;border:1.5px solid #ddd;border-radius:12px;background:#fff;color:#222;font-size:15px;outline:none}
-.select-box select:focus{border-color:#3d6b1e}
-.select-arrow{position:absolute;right:15px;top:50%;transform:translateY(-50%);pointer-events:none;color:#777}
-.service-search{width:100%;padding:14px;border:1.5px solid #ddd;border-radius:12px;font-size:15px;outline:none;margin-bottom:8px}
-.service-search:focus,.service-select:focus{border-color:#3d6b1e}
-.service-select{width:100%;padding:14px;border:1.5px solid #ddd;border-radius:12px;background:#fff;font-size:15px;outline:none}
-.price-box{background:#f0f7eb;border-radius:14px;padding:16px;margin-bottom:16px}
-.price-label{color:#666;font-size:13px;margin-bottom:5px}
-.price{color:#3d6b1e;font-size:24px;font-weight:700}
-.price-note{color:#777;font-size:11px;margin-top:4px}
-.buy-btn{width:100%;padding:16px;background:#3d6b1e;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer}
-.buy-btn:hover:not(:disabled){background:#315617}
-.buy-btn:disabled{background:#ccc;cursor:not-allowed}
-.how-card{background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:17px;margin-top:20px}
-.how-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:650;margin-bottom:14px}
-.how-title-icon{color:#3d6b1e;font-size:20px}
-.how-step{display:flex;gap:10px;margin-bottom:12px;color:#555;font-size:14px;line-height:1.4}
-.how-step-number{width:22px;height:22px;border-radius:50%;background:#f0f7eb;color:#3d6b1e;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.error-box{background:#fff1f1;border:1px solid #f2cccc;color:#b3261e;border-radius:12px;padding:14px;font-size:13px;margin-bottom:16px;display:none;word-break:break-word}
-.success-box{background:#f0f7eb;border:1px solid #d8e9ce;color:#315617;border-radius:12px;padding:14px;font-size:13px;margin-bottom:16px;display:none}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:.3s}
-.modal-overlay.active{opacity:1;visibility:visible}
-.modal{width:100%;max-width:480px;background:#fff;border-radius:22px 22px 0 0;padding:22px 18px 28px;transform:translateY(100%);transition:.3s}
-.modal-overlay.active .modal{transform:translateY(0)}
-.modal-handle{width:40px;height:4px;background:#ddd;border-radius:5px;margin:0 auto 18px}
-.modal-title{font-size:20px;font-weight:700;margin-bottom:6px}
-.modal-subtitle{color:#777;font-size:14px;margin-bottom:20px}
-.number-box{background:#f0f7eb;border:1px solid #d8e9ce;border-radius:14px;padding:18px;text-align:center;margin-bottom:16px}
-.number-label{color:#666;font-size:12px;margin-bottom:5px}
-.number-value{color:#3d6b1e;font-size:25px;font-weight:700;word-break:break-word}
-.sms-code-box{background:#f8f9fa;border:1px solid #e5e5e5;border-radius:14px;padding:16px;text-align:center;margin-bottom:16px}
-.sms-code-label{color:#777;font-size:12px;margin-bottom:5px}
-.sms-code{font-size:24px;font-weight:700;color:#111;letter-spacing:2px;word-break:break-word}
-.timer-box{text-align:center;margin-bottom:16px;font-size:14px;color:#666}
-.timer-value{font-weight:700;color:#3d6b1e}
-.modal-close{width:100%;padding:14px;border:none;border-radius:12px;background:#eee;color:#333;font-size:15px;font-weight:600;cursor:pointer}
-.cancel-btn{width:100%;padding:14px;border:none;border-radius:12px;background:#fff1f1;color:#b3261e;font-size:15px;font-weight:600;margin-bottom:12px;cursor:pointer;display:none}
-.confirm-actions{display:flex;gap:12px;margin-top:8px}
-.confirm-actions button{flex:1;padding:14px;border:none;border-radius:12px;font-weight:600;cursor:pointer}
-.btn-no{background:#eee;color:#333}
-.btn-yes{background:#b3261e;color:#fff}
-@media(max-width:360px){.container{padding-left:12px;padding-right:12px}h1{font-size:24px}}
+  :root{
+    --green: #55701f;
+    --green-dark: #465c1a;
+    --green-light: #eef1e3;
+    --ink: #171717;
+    --gray-600: #6b7280;
+    --gray-500: #8a8a8a;
+    --gray-border: #e6e6e6;
+    --gray-bg: #fafafa;
+    --red: #e0392b;
+    --red-light: #fce8e6;
+    --orange: #d9822b;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-full: 999px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color:var(--ink);
+    background:#ffffff;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{text-decoration:none;color:inherit;}
+  button{font-family:inherit;}
+
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block;}
+
+  /* ---------- App shell ---------- */
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:280px;flex-shrink:0;background:#fcfcfb;border-right:1px solid var(--gray-border);
+    padding:20px 16px 16px;position:fixed;top:0;left:0;bottom:0;
+    transform:translateX(-100%);transition:transform .25s ease;z-index:40;
+    display:flex;flex-direction:column;overflow-y:auto;
+  }
+  .app.sidebar-open .sidebar{transform:translateX(0);}
+
+  .sidebar-header{
+    display:flex;align-items:center;padding:4px 10px 18px;
+    border-bottom:1px solid var(--gray-border);margin-bottom:14px;
+  }
+  .logo-slot{display:flex;align-items:center;gap:8px;font-weight:800;font-size:22px;color:var(--green);font-style:italic;}
+  .logo-slot img{height:40px;display:block;}
+
+  .nav-label{font-size:12px;font-weight:700;color:var(--gray-500);margin:14px 10px 8px;}
+  .nav-label:first-of-type{margin-top:4px;}
+
+  .nav-item{
+    display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;
+    font-size:15.5px;font-weight:600;color:#2b2b2b;margin-bottom:2px;
+  }
+  .nav-item .icon{width:19px;height:19px;color:#2b2b2b;flex-shrink:0;}
+  .nav-item.active{background:#f1f1ef;}
+  .nav-item.disabled{color:#a9a9a9;cursor:default;}
+  .nav-item.disabled .icon{color:#a9a9a9;}
+  .nav-item .soon-pill{
+    margin-left:auto;font-size:11px;font-weight:700;color:var(--green);
+    background:var(--green-light);padding:2px 9px;border-radius:var(--radius-full);
+  }
+  .nav-spacer{flex:1;}
+  .nav-item.signout{color:var(--red);margin-top:6px;}
+  .nav-item.signout .icon{color:var(--red);}
+
+  .sidebar-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:35;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .app.sidebar-open .sidebar-overlay{opacity:1;pointer-events:auto;}
+
+  /* ---------- Main ---------- */
+  .main-wrapper{flex:1;min-width:0;display:flex;flex-direction:column;}
+
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+    border-bottom:1px solid var(--gray-border);background:#fff;position:sticky;top:0;z-index:20;
+  }
+  .icon-btn{
+    background:none;border:none;width:38px;height:38px;display:flex;align-items:center;
+    justify-content:center;border-radius:10px;color:#171717;cursor:pointer;
+  }
+  .icon-btn:hover{background:#f4f4f4;}
+  .topbar-right{display:flex;align-items:center;gap:6px;}
+  .naira-pill{
+    border:1px solid var(--gray-border);border-radius:var(--radius-full);padding:6px 14px;
+    font-weight:800;font-size:14px;color:var(--green);margin-right:4px;
+  }
+  .avatar{
+    width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:14px;margin-left:6px;flex-shrink:0;
+  }
+  .avatar-green{background:#4d6b1f;}
+  .avatar-orange{background:#d9822b;}
+  .avatar-purple{background:#8b5cf6;}
+  .avatar-yellow{background:#e0b32d;}
+  .avatar-blue{background:#3b82f6;}
+
+  .content{max-width:720px;width:100%;margin:0 auto;padding:28px 20px 60px;}
+
+  .welcome h1{font-size:26px;font-weight:800;margin:0 0 6px;letter-spacing:-.3px;}
+  .welcome p{margin:0 0 24px;color:var(--gray-600);font-size:15.5px;}
+
+  /* ---------- SMS page specific ---------- */
+  .balance-card{
+    background:var(--green-light);border:1px solid #e0e6d3;border-radius:var(--radius-lg);
+    padding:16px 20px;margin-bottom:20px;
+  }
+  .balance-label{color:var(--gray-600);font-size:13.5px;margin-bottom:4px;}
+  .balance-value{color:var(--green);font-size:20px;font-weight:800;}
+
+  .error-box{
+    background:var(--red-light);border:1px solid #f2cccc;color:var(--red);border-radius:12px;
+    padding:14px;font-size:13.5px;margin-bottom:16px;display:none;word-break:break-word;
+  }
+  .success-box{
+    background:var(--green-light);border:1px solid #d8e9ce;color:var(--green-dark);border-radius:12px;
+    padding:14px;font-size:13.5px;margin-bottom:16px;display:none;
+  }
+
+  .card{border:1px solid var(--gray-border);border-radius:var(--radius-lg);padding:20px;}
+  .section-title{font-size:16px;font-weight:800;margin-bottom:12px;}
+
+  .providers{display:flex;flex-direction:column;gap:9px;margin-bottom:26px;}
+  .provider-card{
+    background:#fff;border:1.5px solid var(--gray-border);border-radius:var(--radius-md);
+    padding:13px 12px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;
+  }
+  .provider-card:hover{border-color:var(--green);}
+  .provider-card.active{border-color:var(--green);background:var(--green-light);}
+  .provider-icon{
+    width:40px;height:40px;border-radius:12px;background:var(--green-light);color:var(--green);
+    display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+  }
+  .provider-info{flex:1;}
+  .provider-name{font-size:15px;font-weight:700;margin-bottom:3px;}
+  .provider-description{color:var(--gray-500);font-size:12.5px;}
+  .check{
+    width:22px;height:22px;border-radius:50%;border:1.5px solid var(--gray-border);
+    display:flex;align-items:center;justify-content:center;color:transparent;font-size:12px;flex-shrink:0;
+  }
+  .provider-card.active .check{background:var(--green);border-color:var(--green);color:#fff;}
+
+  .country-area, .service-area{margin-bottom:24px;}
+  .select-box{position:relative;}
+  .select-box select{
+    width:100%;appearance:none;padding:14px 42px 14px 14px;border:1.5px solid var(--gray-border);
+    border-radius:12px;background:#fff;color:var(--ink);font-size:15px;outline:none;font-family:inherit;
+  }
+  .select-box select:focus{border-color:var(--green);}
+  .select-arrow{position:absolute;right:15px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--gray-500);}
+
+  .service-search{
+    width:100%;padding:14px;border:1.5px solid var(--gray-border);border-radius:12px;
+    font-size:15px;outline:none;margin-bottom:8px;font-family:inherit;
+  }
+  .service-search:focus, .service-select:focus{border-color:var(--green);}
+  .service-select{
+    width:100%;padding:14px;border:1.5px solid var(--gray-border);border-radius:12px;
+    background:#fff;font-size:15px;outline:none;font-family:inherit;
+  }
+
+  .price-box{background:var(--green-light);border-radius:var(--radius-md);padding:16px;margin-bottom:16px;}
+  .price-label{color:var(--gray-600);font-size:13px;margin-bottom:5px;}
+  .price{color:var(--green);font-size:24px;font-weight:800;}
+  .price-note{color:var(--gray-500);font-size:11.5px;margin-top:4px;}
+
+  .buy-btn{
+    width:100%;padding:16px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-md);
+    font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  .buy-btn:hover:not(:disabled){background:var(--green-dark);}
+  .buy-btn:disabled{background:#ccc;cursor:not-allowed;}
+
+  .how-card{border:1px solid var(--gray-border);border-radius:var(--radius-lg);padding:20px;margin-top:20px;}
+  .how-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:800;margin-bottom:14px;}
+  .how-title-icon{color:var(--green);font-size:19px;}
+  .how-step{display:flex;gap:10px;margin-bottom:12px;color:var(--gray-600);font-size:14px;line-height:1.45;}
+  .how-step:last-child{margin-bottom:0;}
+  .how-step-number{
+    width:22px;height:22px;border-radius:50%;background:var(--green-light);color:var(--green);
+    font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+
+  /* ---------- Bottom sheet modals ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;
+    align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:.3s;
+  }
+  .modal-overlay.active{opacity:1;visibility:visible;}
+  .modal{
+    width:100%;max-width:480px;background:#fff;border-radius:22px 22px 0 0;
+    padding:22px 20px 28px;transform:translateY(100%);transition:.3s;
+  }
+  .modal-overlay.active .modal{transform:translateY(0);}
+  .modal-handle{width:40px;height:4px;background:var(--gray-border);border-radius:5px;margin:0 auto 18px;}
+  .modal-title{font-size:20px;font-weight:800;margin-bottom:6px;}
+  .modal-subtitle{color:var(--gray-500);font-size:14px;margin-bottom:20px;}
+
+  .number-box{
+    background:var(--green-light);border:1px solid #d8e9ce;border-radius:var(--radius-md);
+    padding:18px;text-align:center;margin-bottom:16px;
+  }
+  .number-label{color:var(--gray-600);font-size:12px;margin-bottom:5px;}
+  .number-value{color:var(--green);font-size:25px;font-weight:800;word-break:break-word;}
+
+  .sms-code-box{
+    background:var(--gray-bg);border:1px solid var(--gray-border);border-radius:var(--radius-md);
+    padding:16px;text-align:center;margin-bottom:16px;
+  }
+  .sms-code-label{color:var(--gray-500);font-size:12px;margin-bottom:5px;}
+  .sms-code{font-size:24px;font-weight:800;color:var(--ink);letter-spacing:2px;word-break:break-word;}
+
+  .timer-box{text-align:center;margin-bottom:16px;font-size:14px;color:var(--gray-600);}
+  .timer-value{font-weight:800;color:var(--green);}
+
+  .modal-close{
+    width:100%;padding:14px;border:none;border-radius:12px;background:var(--gray-bg);
+    color:var(--ink);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  }
+  .cancel-btn{
+    width:100%;padding:14px;border:none;border-radius:12px;background:var(--red-light);
+    color:var(--red);font-size:15px;font-weight:700;margin-bottom:12px;cursor:pointer;display:none;font-family:inherit;
+  }
+  .confirm-actions{display:flex;gap:12px;margin-top:8px;}
+  .confirm-actions button{flex:1;padding:14px;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .btn-no{background:var(--gray-bg);color:var(--ink);}
+  .btn-yes{background:var(--red);color:#fff;}
+
+  /* ---------- Desktop ---------- */
+  @media (min-width: 1024px){
+    .sidebar{position:sticky;transform:none;z-index:1;}
+    .sidebar-overlay{display:none;}
+    #sidebarToggle{display:none;}
+    .content{padding:36px 40px 60px;max-width:760px;}
+  }
 </style>
 </head>
 <body>
+<div class="app" id="app">
 
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><img src="logo.png" alt="Trust Social"></div>
-
-  <div class="menu-section">
-    <div class="menu-section-title">Main</div>
-    <a href="dashboard.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Dashboard</a>
-    <a href="wallet.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M22 10H2"/><path d="M6 14h.01"/></svg>Wallet</a>
-    <a href="orders.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Orders</a>
-    <a href="transactions.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Transactions</a>
-  </div>
-
-  <div class="menu-section">
-    <div class="menu-section-title">Store</div>
-    <a href="logs.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>Logs Store</a>
-    <a href="tools.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Tools Store</a>
-    <a href="sms.html" class="menu-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>SMS Numbers</a>
-    <a href="sme.html" class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>SME Boosting <span class="soon-badge">Soon</span></a>
-  </div>
-<div class="menu-section">
-  <div class="menu-section-title">Services</div>
-
-  <a href="airtime.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 2v4"/>
-      <path d="M12 18v4"/>
-      <path d="M4.93 4.93l2.83 2.83"/>
-      <path d="M16.24 16.24l2.83 2.83"/>
-      <path d="M2 12h4"/>
-      <path d="M18 12h4"/>
-      <path d="M4.93 19.07l2.83-2.83"/>
-      <path d="M16.24 7.76l2.83-2.83"/>
-      <circle cx="12" cy="12" r="4"/>
-    </svg>
-    Airtime & Bills
-  </a>
-
-  <a href="cable.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
-      <polyline points="17 2 12 7 7 2"/>
-    </svg>
-    Cable TV & Betting
-  </a>
-
-  <a href="gaming.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <line x1="6" y1="12" x2="10" y2="12"/>
-      <line x1="8" y1="10" x2="8" y2="14"/>
-      <line x1="15" y1="13" x2="15.01" y2="13"/>
-      <line x1="18" y1="11" x2="18.01" y2="11"/>
-      <rect x="2" y="6" width="20" height="12" rx="2"/>
-    </svg>
-    Gaming
-  </a>
-
-  <a href="cards.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-      <line x1="1" y1="10" x2="23" y2="10"/>
-    </svg>
-    Cards
-  </a>
-
-  <a href="proxies.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="2" y1="12" x2="22" y2="12"/>
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-    </svg>
-    Proxies
-  </a>
-
-  <a href="esim.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-      <line x1="12" y1="18" x2="12.01" y2="18"/>
-    </svg>
-    eSIM
-  </a>
-
-  <a href="api-docs.html" class="menu-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline points="16 18 22 12 16 6"/>
-      <polyline points="8 6 2 12 8 18"/>
-    </svg>
-    API & Docs
-  </a>
-</div>
-  <div class="menu-section">
-    <div class="menu-section-title">Account</div>
-    <a href="support.html" class="menu-item">Support</a>
-    <a href="notification.html" class="menu-item">Notification</a>
-    <a href="profile.html" class="menu-item">Profile</a>
-  </div>
-
-  <div class="menu-section" style="border-top:1px solid #eee;margin-top:10px;padding-top:10px">
-    <a href="login.html" class="menu-item signout-item" id="signOutBtn">Sign out</a>
-  </div>
-</div>
-
-<header class="header" id="header">
-  <button class="menu-toggle" id="menuToggle">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-      <rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
-    </svg>
-  </button>
-  <div class="header-right">
-    <span class="badge-no">No</span>
-    <button class="icon-btn" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/></svg></button>
-    <button class="icon-btn" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
-    <div class="avatar" id="userAvatar">--</div>
-  </div>
-</header>
-
-<main class="container">
-  <h1>SMS Numbers</h1>
-  <p class="subtitle">Get temporary numbers for verification</p>
-
-  <div class="balance-card">
-    <div>
-      <div class="balance-label">Wallet Balance</div>
-      <div class="balance-value" id="walletBalance">₦0.00</div>
-    </div>
-  </div>
-
-  <div class="error-box" id="errorBox"></div>
-  <div class="success-box" id="successBox"></div>
-
-  <div class="buy-card">
-    <div class="section-title">1. Provider</div>
-    <div class="providers">
-      <div class="provider-card" data-provider="global"><div class="provider-icon">🌐</div><div class="provider-info"><div class="provider-name">Global Number</div><div class="provider-description">Global numbers</div></div><div class="check">✓</div></div>
-      <div class="provider-card" data-provider="usa"><div class="provider-icon">🇺🇸</div><div class="provider-info"><div class="provider-name">USA Number</div><div class="provider-description">USA numbers only</div></div><div class="check">✓</div></div>
-      <div class="provider-card" data-provider="usa2"><div class="provider-icon">🌐</div><div class="provider-info"><div class="provider-name">Global Number (Server 2)</div><div class="provider-description">Global numbers</div></div><div class="check">✓</div></div>
-    </div>
-
-    <div class="country-area">
-      <div class="section-title">2. Country</div>
-      <div class="select-box">
-        <select id="countrySelect"><option value="">Select country...</option></select>
-        <div class="select-arrow">▼</div>
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-slot">
+        <img src="logo.png.jpg" alt="Temmy Social" onerror="this.style.display='none'; this.parentNode.append('Temmy Social')">
       </div>
     </div>
 
-    <div class="service-area">
-      <div class="section-title">3. Service</div>
-      <input type="text" class="service-search" id="serviceSearch" placeholder="Search service..." autocomplete="off">
-      <select class="service-select" id="serviceSelect"><option value="">Select service...</option></select>
-    </div>
+    <nav>
+      <div class="nav-label">Main</div>
+      <a class="nav-item" href="dashboard.html">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="wallet.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="M16 12h.01"/><path d="M3 9h18"/></svg>
+        Wallet
+      </a>
+      <a class="nav-item" href="orders.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M6 3h12l1 5H5l1-5Z"/><path d="M5 8h14l-1 12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 8Z"/><path d="M9 11a3 3 0 0 0 6 0"/></svg>
+        Orders
+      </a>
+      <a class="nav-item" href="transactions.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        Transactions
+      </a>
 
-    <div class="price-box">
-      <div class="price-label">Price</div>
-      <div class="price" id="price">--</div>
-      <div class="price-note" id="priceNote">Select a service to see the price.</div>
-    </div>
+      <div class="nav-label">Store</div>
+      <a class="nav-item" href="logs.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Logs Store
+      </a>
+      <a class="nav-item" href="tools.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.3 2.3-2-2 2.3-2.3Z"/></svg>
+        Tools Store
+      </a>
+      <a class="nav-item active" href="sms.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4V4Z"/><path d="M8 9h8M8 12h5"/></svg>
+        SMS Numbers
+      </a>
+      <a class="nav-item disabled" href="#">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>
+        SME Boosting
+        <span class="soon-pill">Soon</span>
+      </a>
 
-    <button class="buy-btn" id="buyBtn" type="button" disabled>Select Provider, Country & Service</button>
+      <div class="nav-label">Services</div>
+      <a class="nav-item" href="airtime.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="4"/></svg>
+        Airtime &amp; Bills
+      </a>
+      <a class="nav-item" href="cable.html">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
+        Cable TV &amp; Betting
+      </a>
+      <a class="nav-item" href="gaming.html">
+        <svg class="icon" viewBox="0 0 24 24"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+        Gaming
+      </a>
+      <a class="nav-item" href="cards.html">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Cards
+      </a>
+      <a class="nav-item" href="proxies.html">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Proxies
+      </a>
+      <a class="nav-item" href="esim.html">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        eSIM
+      </a>
+      <a class="nav-item" href="api-docs.html">
+        <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        API &amp; Docs
+      </a>
+
+      <div class="nav-label">Account</div>
+      <a class="nav-item" href="support.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+        Support
+      </a>
+      <a class="nav-item" href="notification.html">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        Notification
+      </a>
+      <a class="nav-item" href="profile.html">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+        Profile
+      </a>
+    </nav>
+
+    <div class="nav-spacer"></div>
+    <a class="nav-item signout" href="#" id="signOutBtn">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      Sign out
+    </a>
+  </aside>
+
+  <div class="sidebar-overlay" id="overlay"></div>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="icon-btn" id="sidebarToggle" aria-label="Toggle menu">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+      </button>
+
+      <div class="topbar-right">
+        <div class="naira-pill" id="nairaBalancePill">₦0</div>
+        <button class="icon-btn" aria-label="Toggle theme">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <button class="icon-btn" aria-label="Notifications">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </button>
+        <div class="avatar avatar-green" id="userAvatar">--</div>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="welcome">
+        <h1>SMS Numbers</h1>
+        <p>Get temporary numbers for verification</p>
+      </div>
+
+      <div class="balance-card">
+        <div class="balance-label">Wallet Balance</div>
+        <div class="balance-value" id="walletBalancePill2">₦0.00</div>
+      </div>
+
+      <div class="error-box" id="errorBox"></div>
+      <div class="success-box" id="successBox"></div>
+
+      <div class="card">
+        <div class="section-title">1. Provider</div>
+        <div class="providers" id="providersList">
+          <div style="color:var(--gray-500);font-size:14px;padding:8px 0;">Loading providers...</div>
+        </div>
+
+        <div class="country-area">
+          <div class="section-title">2. Country</div>
+          <div class="select-box">
+            <select id="countrySelect"><option value="">Select country...</option></select>
+            <div class="select-arrow">▼</div>
+          </div>
+        </div>
+
+        <div class="service-area">
+          <div class="section-title">3. Service</div>
+          <input type="text" class="service-search" id="serviceSearch" placeholder="Search service..." autocomplete="off">
+          <select class="service-select" id="serviceSelect"><option value="">Select service...</option></select>
+        </div>
+
+        <div class="price-box">
+          <div class="price-label">Price</div>
+          <div class="price" id="price">--</div>
+          <div class="price-note" id="priceNote">Select a service to see the price.</div>
+        </div>
+
+        <button class="buy-btn" id="buyBtn" type="button" disabled>Select Provider, Country &amp; Service</button>
+      </div>
+
+      <div class="how-card">
+        <div class="how-title"><span class="how-title-icon">ⓘ</span> How it works</div>
+        <div class="how-step"><div class="how-step-number">1</div><div>Choose your provider, country and service.</div></div>
+        <div class="how-step"><div class="how-step-number">2</div><div>The cost is deducted from your wallet.</div></div>
+        <div class="how-step"><div class="how-step-number">3</div><div>Your number appears after a successful purchase.</div></div>
+        <div class="how-step"><div class="how-step-number">4</div><div>We automatically check for your SMS code.</div></div>
+      </div>
+    </main>
   </div>
-
-  <div class="how-card">
-    <div class="how-title"><span class="how-title-icon">ⓘ</span> How it works</div>
-    <div class="how-step"><div class="how-step-number">1</div><div>Choose your provider, country and service.</div></div>
-    <div class="how-step"><div class="how-step-number">2</div><div>The cost is deducted from your wallet.</div></div>
-    <div class="how-step"><div class="how-step-number">3</div><div>Your number appears after a successful purchase.</div></div>
-    <div class="how-step"><div class="how-step-number">4</div><div>We automatically check for your SMS code.</div></div>
-  </div>
-</main>
+</div>
 
 <!-- Number Modal -->
 <div class="modal-overlay" id="numberModal">
@@ -286,7 +446,7 @@ h1{font-size:26px;font-weight:700;margin-bottom:6px}
       Expires in: <span class="timer-value" id="timerValue">--:--</span>
     </div>
 
-    <button class="cancel-btn" id="cancelRefundBtn">Cancel & Refund</button>
+    <button class="cancel-btn" id="cancelRefundBtn">Cancel &amp; Refund</button>
     <button class="modal-close" id="closeModal" type="button">Close</button>
   </div>
 </div>
@@ -295,8 +455,8 @@ h1{font-size:26px;font-weight:700;margin-bottom:6px}
 <div class="modal-overlay" id="confirmModal">
   <div class="modal" style="max-width:340px;border-radius:18px">
     <div style="text-align:center;padding:6px 0 18px">
-      <div style="font-size:18px;font-weight:700;margin-bottom:10px">Cancel Order?</div>
-      <div style="color:#666;font-size:15px;line-height:1.5">
+      <div style="font-size:18px;font-weight:800;margin-bottom:10px">Cancel Order?</div>
+      <div style="color:var(--gray-600);font-size:15px;line-height:1.5">
         Are you sure you want to cancel this order and get refunded?
       </div>
     </div>
@@ -310,7 +470,7 @@ h1{font-size:26px;font-weight:700;margin-bottom:6px}
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, serverTimestamp, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, addDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDDutrOemL5dqk4hIdQ1K2QmhiBhtegv8k",
@@ -342,10 +502,25 @@ let priceRequestId = 0;
 let currentOrderId = null;
 let currentOrderPrice = 0;
 let currentOrderDocId = null;
-let codeReceived = false;
 
-const sidebar = document.getElementById("sidebar");
-const overlay = document.getElementById("sidebarOverlay");
+// ---------- Sidebar (site pattern) ----------
+const appEl = document.getElementById("app");
+document.getElementById("sidebarToggle").addEventListener('click', () => appEl.classList.toggle('sidebar-open'));
+document.getElementById("overlay").addEventListener('click', () => appEl.classList.remove('sidebar-open'));
+
+// ---------- Avatar colour (site pattern) ----------
+const AVATAR_COLORS = ['green', 'orange', 'purple', 'yellow', 'blue'];
+function applyAvatarColor(colorName) {
+  const el = document.getElementById('userAvatar');
+  AVATAR_COLORS.forEach(c => el.classList.remove('avatar-' + c));
+  el.classList.add('avatar-' + colorName);
+}
+function colorForUser(uid) {
+  let hash = 0;
+  for (const ch of uid) hash = (hash * 31 + ch.charCodeAt(0)) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[hash];
+}
+
 const countrySelect = document.getElementById("countrySelect");
 const serviceSelect = document.getElementById("serviceSelect");
 const serviceSearch = document.getElementById("serviceSearch");
@@ -354,7 +529,6 @@ const priceEl = document.getElementById("price");
 const priceNote = document.getElementById("priceNote");
 const errorBox = document.getElementById("errorBox");
 const successBox = document.getElementById("successBox");
-const walletBalance = document.getElementById("walletBalance");
 const numberModal = document.getElementById("numberModal");
 const numberValue = document.getElementById("numberValue");
 const smsCode = document.getElementById("smsCode");
@@ -388,18 +562,6 @@ function resetPrice() {
   currentPriceData = null;
 }
 
-/* Sidebar */
-document.getElementById("menuToggle").onclick = () => {
-  sidebar.classList.add("active");
-  overlay.classList.add("active");
-  document.body.style.overflow = "hidden";
-};
-overlay.onclick = () => {
-  sidebar.classList.remove("active");
-  overlay.classList.remove("active");
-  document.body.style.overflow = "";
-};
-
 /* Sign out */
 document.getElementById("signOutBtn").onclick = async (e) => {
   e.preventDefault();
@@ -431,25 +593,58 @@ function getServiceName(s) {
   return String(s?.name ?? s?.service_name ?? s?.title ?? getServiceCode(s)).trim();
 }
 
-/* Provider */
-document.querySelectorAll(".provider-card").forEach(card => {
-  card.onclick = async () => {
-    document.querySelectorAll(".provider-card").forEach(c => c.classList.remove("active"));
-    card.classList.add("active");
-    selectedProvider = card.dataset.provider;
-    selectedCountry = "";
-    selectedService = null;
-    allServices = [];
-    priceRequestId++;
-    serviceSearch.value = "";
-    serviceSelect.innerHTML = `<option value="">Select service...</option>`;
-    countrySelect.innerHTML = `<option value="">Loading countries...</option>`;
-    resetPrice();
-    hideError();
-    updateBuyButton();
-    await loadCountries();
-  };
-});
+/* Providers — loaded live from your API, nothing hardcoded */
+async function loadProviders() {
+  const list = document.getElementById("providersList");
+  try {
+    const data = await requestJSON(`${API_URL}?action=providers`);
+    const providers = extractArray(data, ["providers"]);
+
+    if (!providers.length) throw new Error("No providers returned");
+
+    list.innerHTML = providers.map(p => {
+      const code = String(p.code ?? p.id ?? p.value ?? "").trim();
+      const name = String(p.name ?? code).trim();
+      const description = String(p.description ?? "").trim();
+      const flagEmoji = p.icon || p.flag || "🌐";
+      return `
+        <div class="provider-card" data-provider="${code}">
+          <div class="provider-icon">${flagEmoji}</div>
+          <div class="provider-info"><div class="provider-name">${name}</div><div class="provider-description">${description}</div></div>
+          <div class="check">✓</div>
+        </div>
+      `;
+    }).join("");
+
+    bindProviderCards();
+  } catch (e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:14px;padding:8px 0;">Unable to load providers. Add an "action=providers" response on your API.</div>`;
+    console.error("Provider load failed:", e);
+  }
+}
+
+function bindProviderCards() {
+  document.querySelectorAll(".provider-card").forEach(card => {
+    card.onclick = async () => {
+      document.querySelectorAll(".provider-card").forEach(c => c.classList.remove("active"));
+      card.classList.add("active");
+      selectedProvider = card.dataset.provider;
+      selectedCountry = "";
+      selectedService = null;
+      allServices = [];
+      priceRequestId++;
+      serviceSearch.value = "";
+      serviceSelect.innerHTML = `<option value="">Select service...</option>`;
+      countrySelect.innerHTML = `<option value="">Loading countries...</option>`;
+      resetPrice();
+      hideError();
+      updateBuyButton();
+      await loadCountries();
+    };
+  });
+}
+
+loadProviders();
 
 /* Countries */
 async function loadCountries() {
@@ -513,7 +708,7 @@ function renderServices(list) {
 
 serviceSearch.oninput = () => {
   const q = serviceSearch.value.toLowerCase();
-  const filtered = allServices.filter(s => 
+  const filtered = allServices.filter(s =>
     getServiceName(s).toLowerCase().includes(q) || getServiceCode(s).toLowerCase().includes(q)
   );
   renderServices(filtered);
@@ -601,12 +796,10 @@ async function buyNumber() {
       })
     });
 
-    // Deduct balance
     await updateDoc(doc(db, "users", currentUser.uid), {
       balance: increment(-currentPrice)
     });
 
-    // Save order
     const orderRef = await addDoc(collection(db, "orders"), {
       userId: currentUser.uid,
       orderId: data.order_id,
@@ -625,21 +818,15 @@ async function buyNumber() {
     currentOrderId = data.order_id;
     currentOrderPrice = currentPrice;
     currentOrderDocId = orderRef.id;
-    codeReceived = false;
 
-    // Show modal
     numberValue.textContent = data.number || "--";
     smsCode.textContent = "Waiting...";
     modalSubtitle.textContent = `${selectedCountry} • ${serviceName}`;
     numberModal.classList.add("active");
 
-    // Show Cancel button
     cancelRefundBtn.style.display = "block";
 
-    // Timer
     startExpiryTimer(data.expires_at, data.seconds_remaining);
-
-    // Poll for SMS
     if (data.order_id) startStatusPolling(data.order_id);
 
     await loadWalletBalance();
@@ -665,7 +852,6 @@ confirmYes.onclick = async () => {
   confirmYes.textContent = "Processing...";
 
   try {
-    // Cancel on MYTPSMS
     await requestJSON(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -675,12 +861,10 @@ confirmYes.onclick = async () => {
       })
     });
 
-    // Refund user
     await updateDoc(doc(db, "users", currentUser.uid), {
       balance: increment(currentOrderPrice)
     });
 
-    // Update order status
     if (currentOrderDocId) {
       await updateDoc(doc(db, "orders", currentOrderDocId), {
         status: "cancelled",
@@ -743,10 +927,8 @@ function startStatusPolling(orderId) {
       if (data.sms_code || data.full_sms) {
         const code = data.sms_code || data.full_sms;
         smsCode.textContent = code;
-        codeReceived = true;
-        cancelRefundBtn.style.display = "none"; // Hide forever
+        cancelRefundBtn.style.display = "none";
 
-        // Update Firestore order
         if (currentOrderDocId) {
           await updateDoc(doc(db, "orders", currentOrderDocId), {
             status: "received",
@@ -779,9 +961,9 @@ async function loadWalletBalance() {
   if (!currentUser) return;
   try {
     const snap = await getDoc(doc(db, "users", currentUser.uid));
-    if (snap.exists()) {
-      walletBalance.textContent = formatNaira(snap.data().balance || 0);
-    }
+    const balance = snap.exists() ? (snap.data().balance || 0) : 0;
+    document.getElementById("walletBalancePill2").textContent = formatNaira(balance);
+    document.getElementById("nairaBalancePill").textContent = "₦" + Number(balance).toLocaleString();
   } catch (e) {
     console.error(e);
   }
@@ -800,6 +982,7 @@ onAuthStateChanged(auth, async (user) => {
   let ini = parts[0]?.[0]?.toUpperCase() || "";
   if (parts.length > 1) ini += parts.at(-1)[0]?.toUpperCase() || "";
   document.getElementById("userAvatar").textContent = ini || "U";
+  applyAvatarColor(colorForUser(user.uid));
 
   await loadWalletBalance();
 });
