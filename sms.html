@@ -303,10 +303,9 @@
         <svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4V4Z"/><path d="M8 9h8M8 12h5"/></svg>
         SMS Numbers
       </a>
-      <a class="nav-item disabled" href="#">
+      <a class="nav-item" href="sme.html">
         <svg class="icon" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>
         SME Boosting
-        <span class="soon-pill">Soon</span>
       </a>
 
       <div class="nav-label">Services</div>
@@ -518,6 +517,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const API_URL = "https://trustsocials.vercel.app/api/mytpsms";
+const MARKUP_MULTIPLIER = 1.5; // +50%, same as the Logs Store
+const MARKUP_MULTIPLIER = 1.5; // +50%, same as the Logs Store
 
 let currentUser = null;
 let selectedProvider = "";
@@ -749,7 +750,8 @@ async function loadPrice() {
     if (rid !== priceRequestId) return;
 
     currentPriceData = data;
-    currentPrice = Number(data.selling_price || data.price) || null;
+    const rawPrice = Number(data.selling_price || data.price) || null;
+    currentPrice = rawPrice ? Math.round(rawPrice * MARKUP_MULTIPLIER) : null;
 
     if (!currentPrice) {
       priceEl.textContent = "--";
@@ -808,7 +810,8 @@ function renderPools(pools) {
   const poolCards = pools.map(p => {
     const poolId = String(p.pool ?? p.id ?? "").trim();
     const poolName = String(p.name ?? `Pool ${poolId}`).trim();
-    const poolPrice = Number(p.selling_price ?? p.price) || null;
+    const rawPoolPrice = Number(p.selling_price ?? p.price) || null;
+    const poolPrice = rawPoolPrice ? Math.round(rawPoolPrice * MARKUP_MULTIPLIER) : null;
     const poolStock = (typeof p.stock !== "undefined" && p.stock !== null) ? `${p.stock} in stock` : "";
 
     return `
@@ -835,7 +838,8 @@ function renderPools(pools) {
         currentPrice = overridePrice;
         priceEl.textContent = formatNaira(overridePrice);
       } else {
-        currentPrice = Number(currentPriceData.selling_price || currentPriceData.price) || null;
+        const rawPrice = Number(currentPriceData.selling_price || currentPriceData.price) || null;
+        currentPrice = rawPrice ? Math.round(rawPrice * MARKUP_MULTIPLIER) : null;
         priceEl.textContent = formatNaira(currentPrice);
       }
       updateBuyButton();
@@ -850,10 +854,24 @@ async function buyNumber() {
   if (!currentUser || !currentPrice) return;
 
   buyBtn.disabled = true;
-  buyBtn.textContent = "Buying...";
+  buyBtn.textContent = "Checking balance...";
 
   try {
     hideError();
+
+    // Check the user's real wallet balance before doing anything else
+    const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+    const balance = userSnap.exists() ? (userSnap.data().balance || 0) : 0;
+
+    if (balance < currentPrice) {
+      showError("Insufficient balance. Please top up your wallet.");
+      buyBtn.textContent = "Buy Number";
+      buyBtn.disabled = false;
+      return;
+    }
+
+    buyBtn.textContent = "Buying...";
+
     const serviceCode = getServiceCode(selectedService);
     const serviceName = getServiceName(selectedService);
 
